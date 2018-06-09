@@ -1,0 +1,29 @@
+{
+  "files": [
+    "src/server/server.ts"
+  ],
+  "include": [
+    "server/**/*.ts"
+  ],
+  "compilerOptions": {
+    "module": "commonjs",
+    "noImplicitAny": true,
+    "target": "es5",
+    "outDir": "dist",
+    "rootDir": "src",
+    "sourceMap": true,
+    "baseUrl": ".",
+    "moduleResolution": "node",
+    "removeComments": true,
+    "types": ["node"],
+    "typeRoots": [
+      "node_modules/@types/*"
+    ],
+    "paths": {
+      "*": [
+        "node_modules/@types/*",
+        "./server/types/*"
+      ]
+    }
+  }
+}
