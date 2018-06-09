@@ -12,9 +12,11 @@ app.use(bodyParser.urlencoded({extend: true}));
 
 MongoClient.connect(db.url, (err: any, database: any) => {
     (err) && console.log(err);
+    const db = database.db('menu');
 
+    require('../app/routes')(app, db);
     app.listen(app.get('port'),() => {
-        const date = new Date().toDateString();
+        const date = new Date().toString();
         console.log(date);
         console.log(('App is running at http://localhost:%d in %s mode'),
             app.get('port'), app.get('env'));

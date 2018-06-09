@@ -1,4 +1,4 @@
 export interface Food {
     name: string;
-    denomination: string;
+    measurement: string;
 }
