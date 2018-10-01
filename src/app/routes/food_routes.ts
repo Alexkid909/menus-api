@@ -17,22 +17,31 @@ module.exports = (app: Application, db: any) => {
             measurement: req.body.measurement
         };
         foodsCollection.insert(food, (err: any, result: any) => {
-            console.log(result.ops);
-            (err) ? res.send(standardErrorMessage()) : res.send(result.ops[0]);
+            console.log('result', result.ops);
+            if(err) {
+                res.status(500);
+                res.send(standardErrorMessage())
+            } else {
+                res.status(201);
+                res.send(result.ops[0]);
+            }
         });
-        console.log(req.body);
+        console.log('request body', req.body);
     });
+
     app.get('/foods/:id', (req: Request, res: Response) => {
         const details = {'_id' : new ObjectID(req.params.id)}
         foodsCollection.findOne(details, (err: any, result: any) => {
             (err) ? res.send(standardErrorMessage()) : res.send(result);
         });
     });
+
     app.get('/foods', (req: Request, res: Response) => {
         db.collection('foods').find({}).toArray((err: any, result: any) => {
             (err) ? res.send(standardErrorMessage()) : res.send(result);
         });
     });
+
     app.put('/foods/:id', (req: Request, res: Response) => {
         console.log('new put');
         const id = req.params.id;
@@ -54,11 +63,13 @@ module.exports = (app: Application, db: any) => {
             console.log('error', error)
         })
     });
+
     app.delete('/foods/:id', (req: Request, res: Response) => {
         const id = new ObjectID(req.params.id);
         const details = {'_id' : id};
         foodsCollection.remove(details, (err: any, result: any) => {
-            (err) ? res.send(standardErrorMessage()) : res.send('Note ' + id + ' deleted!');
+            const success = {message: `Food ${id} deleted!`};
+            (err) ? res.send(standardErrorMessage()) : res.send(JSON.stringify(success));
         });
     });
 };

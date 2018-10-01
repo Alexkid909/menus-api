@@ -2,13 +2,16 @@ const express = require('express');
 const bodyParser = require("body-parser");
 const db = require('../config/db');
 const MongoClient = require("mongodb").MongoClient;
+const cors = require('cors');
 
 const port = 3001;
 const app = express();
 
 app.set('port', process.env.PORT || port);
 
-app.use(bodyParser.urlencoded({extend: true}));
+app.use(bodyParser.json());
+// app.use(bodyParser.urlencoded({extend: true}));
+app.use(cors());
 
 MongoClient.connect(db.url, (err: any, database: any) => {
     (err) && console.log(err);
