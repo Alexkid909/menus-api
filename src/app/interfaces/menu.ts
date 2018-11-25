@@ -1,5 +1,4 @@
-import { Meal } from './meal'
-import { MenuDay } from './menuDay';
+import { Meal } from "../classes/meal";
 
 export interface Menu {
     id: string;
