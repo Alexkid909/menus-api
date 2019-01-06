@@ -5,7 +5,6 @@ export default {
     createMeal: {
         body : {
             name: Joi.string().required().trim(),
-            measurement: Joi.string().required().trim(),
         }
     },
 
@@ -23,7 +22,6 @@ export default {
         },
         body: {
             name: Joi.string().required(),
-            measurement: Joi.string().required(),
         }
     }
 };

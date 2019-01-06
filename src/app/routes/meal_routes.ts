@@ -13,15 +13,15 @@ module.exports = (app: Application, db: any) => {
         mealsService.createMeal(req, res, next);
     });
 
-    app.get('/meals/:id', (req: Request, res: Response, next: NextFunction) => {
+    app.get('/meals/:mealId', (req: Request, res: Response, next: NextFunction) => {
         mealsService.getMeal(req, res, next);
     });
 
-    app.put('/meals/:id', (req: Request, res: Response, next: NextFunction) => {
+    app.put('/meals/:mealId', (req: Request, res: Response, next: NextFunction) => {
         mealsService.updateMeal(req, res, next);
     });
 
-    app.delete('/meals/:id', (req: Request, res: Response, next: NextFunction) => {
+    app.delete('/meals/:mealId', (req: Request, res: Response, next: NextFunction) => {
         mealsService.deleteMeal(req, res, next);
     });
 };

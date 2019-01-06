@@ -3,7 +3,10 @@ import {Collection, MongoError} from "mongodb";
 import {NextFunction, Request, Response} from "express";
 import {Meal} from "../classes/meal";
 import {ApiErrorBody} from "../classes/apiErrorBody";
+import validation from "../routes/validation/meals";
+import {ApiSuccessBody} from "../classes/apiSuccessBody";
 
+const Joi = require("joi");
 
 export class MealService {
     mealsCollection: Collection;
@@ -19,49 +22,77 @@ export class MealService {
     }
 
     getMeal(req: Request, res: Response, next: NextFunction) {
-        const details = {'_id' : new ObjectID(req.params.id)};
-        this.mealsCollection.findOne(details, (err: any, result: any) => {
-            (err) ? res.send(new ApiErrorBody()) : res.send(result);
-        });
+        const reqData = { params: req.params };
+
+        Joi.validate(reqData, validation.getOrDeleteMeal, (error: any, value: any) => {
+            return (error) ? Promise.reject(error) : Promise.resolve(value);
+        }).then((success: any) => {
+            const details = {'_id' : new ObjectID(req.params.mealId)};
+            return this.mealsCollection.findOne(details);
+        }, (error: any) => {
+            const errorMessages = error.details.map((detail: any)  => detail.message);
+            res.status(400).send(new ApiErrorBody(errorMessages));
+        }).then((success: any) => {
+            res.send(success);
+        }).catch(next);
     }
 
     createMeal(req: Request, res: Response, next: NextFunction) {
-        const meal = new Meal(req.body.name);
-        if(!meal.name) {
-            res.send({message:'Please provide a name for this meal'});
-        } else {
-            this.mealsCollection.insert(meal, (err: any, result: any) => {
-                (err) ? res.status(500).send(new ApiErrorBody()) : res.send(result.ops[0]);
-            });
-        }
+        const reqData = { body: req.body };
+
+        Joi.validate(reqData , validation.createMeal, (error: any, value: any) => {
+            (error) && console.log(error);
+            return (error) ? Promise.reject(error) : Promise.resolve(value);
+        }).then((success: any) => {
+            const meal = new Meal(req.body.name);
+            return this.mealsCollection.insert(meal);
+        }, (error: any) => {
+            const errorMessages = error.details.map((detail: any)  => detail.message);
+            res.status(400).send(new ApiErrorBody(errorMessages));
+        }).then((success: any) => {
+            res.status(201).send(success.ops[0]);
+        }).catch(next);
     }
 
     deleteMeal(req: Request, res: Response, next: NextFunction) {
-        const id = new ObjectID(req.params.id);
-        const details = {'_id' : id};
-        this.mealsCollection.remove(details, (err: any, result: any) => {
-            const success = {message: `Meal ${id} deleted!`};
-            (err) ? res.send(new ApiErrorBody()) : res.send(JSON.stringify(success));
-        });
+        const reqData = {
+            params: req.params
+        };
+
+        Joi.validate(reqData, validation.updateMeal, (error: any, value: any) => {
+            return (error) ? Promise.reject(error) : Promise.resolve(value);
+        }).then((success: any) => {
+            const details = {'_id' : new ObjectID(req.params.mealId)};
+            return this.mealsCollection.findOneAndDelete(details)
+        }, (error: any) => {
+            const errorMessages = error.details.map((detail: any)  => detail.message);
+            res.status(400).send(new ApiErrorBody(errorMessages));
+            console.log(error);
+        }).then((doc: any) => {
+            console.log('doc', doc);
+            const body = new ApiSuccessBody('success', []);
+            body.newMessage(`Meal ${doc.value._id} deleted`);
+            res.send(body);
+        }).catch(next);
     }
 
     updateMeal(req: Request, res: Response, next: NextFunction) {
-        const meal = new Meal(req.body.name, req.body.foods);
-        (!meal.name) && res.send('Please provide a name for this meal');
-        console.log('updated meal', meal);
-        const id = req.params.id;
-        const details = {'_id': new ObjectID(id)};
-        this.mealsCollection.updateOne(details, {$set: meal}).then((success: any) => {
-            this.mealsCollection.findOne(details, (err: MongoError, item: any) => {
-                if (err) {
-                    res.send({'error':'An error has occurred'});
-                } else {
-                    console.log('item', item);
-                    res.send(item);
-                }
-            });
+        const reqData = {
+            params: req.params,
+            body: req.body
+        };
+
+        Joi.validate(reqData, validation.updateMeal, (error: any, value: any) => {
+            return (error) ? Promise.reject(error) : Promise.resolve(value);
+        }).then((success: any) => {
+            const meal = new Meal(req.body.name, req.body.measurement);
+            const details = {'_id': new ObjectID(req.params.mealId)};
+            return this.mealsCollection.findOneAndUpdate(details, meal)
         }, (error: any) => {
-            console.log('error', error)
-        })
+            const errorMessages = error.details.map((detail: any) => detail.message);
+            res.status(400).send(new ApiErrorBody(errorMessages));
+        }).then((success: any) => {
+            res.send(new ApiSuccessBody('success', success.value));
+        }).catch(next);
     }
 }

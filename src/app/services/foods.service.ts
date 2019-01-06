@@ -20,7 +20,6 @@ export class FoodsService {
     }
 
     getFood(req: Request, res: Response, next: NextFunction) {
-        console.log('this', this.foodsCollection);
         const reqData = { params: req.params };
 
         Joi.validate(reqData, validation.getOrDeleteFood, (error: any, value: any) => {
@@ -50,22 +49,19 @@ export class FoodsService {
             res.status(400).send(new ApiErrorBody(errorMessages));
         }).then((success: any) => {
             res.status(201).send(success.ops[0]);
-        }).catch((error: any) => {
-            console.log(error);
-        });
+        }).catch(next);
     }
 
     deleteFood(req: Request, res: Response, next: NextFunction) {
-        console.log('this', this.foodsCollection);
         const reqData = {
             params: req.params
         };
 
         Joi.validate(reqData, validation.updateFood, (error: any, value: any) => {
-            (error) ? Promise.reject(error) : Promise.resolve(value);
+            return (error) ? Promise.reject(error) : Promise.resolve(value);
         }).then((success: any) => {
             const details = {'_id' : new ObjectID(req.params.foodId)};
-            return this.foodsCollection.findOneAndDelete(details, {projection: '_id'})
+            return this.foodsCollection.findOneAndDelete(details)
         }, (error: any) => {
             const errorMessages = error.details.map((detail: any)  => detail.message);
             res.status(400).send(new ApiErrorBody(errorMessages));
@@ -73,21 +69,20 @@ export class FoodsService {
         }).then((doc: any) => {
             console.log('doc', doc);
             const body = new ApiSuccessBody('success', []);
-            body.newMessage(`MealFoodLink ${doc.value._id} deleted`);
+            body.newMessage(`Food ${doc.value._id} deleted`);
             res.send(body);
         }).catch(next);
 
     };
 
     updateFood(req: Request, res: Response, next: NextFunction) {
-        console.log('this', this.foodsCollection);
         const reqData = {
             params: req.params,
             body: req.body
         };
 
         Joi.validate(reqData, validation.updateFood, (error: any, value: any) => {
-            (error) ? Promise.reject(error) : Promise.resolve(value);
+           return (error) ? Promise.reject(error) : Promise.resolve(value);
         }).then((success: any) => {
             console.log('this', this.foodsCollection);
             const food = new Food(req.body.name, req.body.measurement);
