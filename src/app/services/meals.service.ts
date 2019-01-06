@@ -4,6 +4,8 @@ import {Food} from "../classes/food";
 import {Collection} from "mongodb";
 import {MealFood} from "../classes/mealFood";
 import {NextFunction, Request, Response} from "express";
+import {Meal} from "../classes/meal";
+import {ApiErrorBody} from "../classes/apiErrorBody";
 
 
 export class MealService {
@@ -14,7 +16,9 @@ export class MealService {
     }
 
     getMeals(req: Request, res: Response, next: NextFunction) {
-
+        this.mealsCollection.find({}).toArray((err: any, result: any) => {
+            (err) ? res.status(500).send(new ApiErrorBody()) : res.send(result);
+        });
     }
 
     getMeal(req: Request, res: Response, next: NextFunction) {

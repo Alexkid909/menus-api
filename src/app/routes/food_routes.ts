@@ -1,11 +1,9 @@
 import {Application, NextFunction, Request, Response} from "express";
 import { FoodsService } from "../services/foods.service";
 
-
 const Joi = require("joi");
 
 module.exports = (app: Application, db: any) => {
-    const menuCollection = db.collection('menus');
     const foodService = new FoodsService(db);
 
     app.post('/foods', (req: Request, res: Response, next: NextFunction) => {
