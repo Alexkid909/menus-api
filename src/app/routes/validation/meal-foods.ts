@@ -2,7 +2,7 @@ const Joi = require("joi");
 
 export default {
     // POST /api/mealFoods
-    createMealFood: {
+    createMealFoods: {
         body : {
             name: Joi.string().required().trim(),
             measurement: Joi.string().required().trim(),
@@ -10,14 +10,14 @@ export default {
     },
 
     // GET-PUT-DELETE /api/tasks/:taskId
-    getOrDeleteMealFood: {
+    getOrDeleteMealFoods: {
         params: {
-            mealFoodId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required()
+            mealId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required()
         }
     },
 
     // PUT /api/mealFoods/:id
-    updateMealFood: {
+    updateMealFoods: {
         params: {
             mealFoodId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required()
         },

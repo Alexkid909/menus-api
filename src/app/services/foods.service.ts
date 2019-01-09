@@ -24,7 +24,6 @@ export class FoodsService {
 
         Joi.validate(reqData, validation.getOrDeleteFood, (error: any, value: any) => {
             const errorMessages = error.details.map((detail: any)  => detail.message);
-            res.status(400).send(new ApiErrorBody(errorMessages));
         }).then((success: any) => {
             const details = {'_id' : new ObjectID(req.params.id)};
             return this.foodsCollection.findOne(details);
@@ -32,7 +31,7 @@ export class FoodsService {
             const errorMessages = error.details.map((detail: any)  => detail.message);
             res.status(422).send(new ApiErrorBody(errorMessages));
         }).then((success: any) => {
-                res.send(success);
+            res.send(success);
         }).catch(next);
     }
 

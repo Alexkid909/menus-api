@@ -1,12 +1,11 @@
 import {Application, NextFunction, Request, Response} from "express";
 import { ObjectID } from "bson";
 import { MealFoodLink } from "../classes/mealFoodLink";
-import { MealFoodLinksService } from "../services/meal-foods.service";
-import { ApiResponseBody } from "../classes/apiResponseBody";
+import { MealFoodsService } from "../services/meal-foods.service";
 import {ApiSuccessBody} from "../classes/apiSuccessBody";
 
 module.exports = (app: Application, db: any) => {
-    const mealFoodsService = new MealFoodLinksService(db);
+    const mealFoodsService = new MealFoodsService(db);
     const standardErrorMessage = () => {
         return {error: 'An error has occured'}
     };
@@ -30,17 +29,13 @@ module.exports = (app: Application, db: any) => {
     });
 
 
-    app.get('/meals/:mealId/foods', (req: Request, res: Response) => {
-        mealFoodsService.getMealFoodLinks(req.params.mealId).then(success => {
-            res.send(success);
-        }, error => {
-            console.log(error);
-        });
+    app.get('/meals/:mealId/foods', (req: Request, res: Response, next: NextFunction) => {
+        mealFoodsService.getMealFoods(req, res, next);
     });
 
     app.delete('/meal-foods/:mealFoodId', (req: Request, res: Response, next: NextFunction) => {
         const body = new ApiSuccessBody('success', []);
-        mealFoodsService.deleteMealFoodLink(req.params.mealFoodId).then(doc => {
+        mealFoodsService.deleteMealFoods(req.params.mealFoodId).then(doc => {
             body.newMessage(`MealFoodLink ${doc.value._id} deleted`);
             console.log(body);
             res.send(body);

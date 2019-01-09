@@ -3,9 +3,16 @@ import {ObjectID} from "bson";
 import {Food} from "../classes/food";
 import {Collection} from "mongodb";
 import {MealFood} from "../classes/mealFood";
+import {NextFunction, Request, Response} from "express";
+import validation from "../routes/validation/meal-foods";
+import {ApiErrorBody} from "../classes/apiErrorBody";
+import {ApiSuccessBody} from "../classes/apiSuccessBody";
 
 
-export class MealFoodLinksService {
+const Joi = require('joi');
+
+
+export class MealFoodsService {
     mealFoodsCollection: Collection;
     foodsCollection: Collection;
 
@@ -15,39 +22,41 @@ export class MealFoodLinksService {
     }
 
 
-    getMealFoodLinks(mealId: string) : Promise<any> {
-        return new Promise((resolve, reject) => {
-            const mealFoodsQuery = {'mealId' : new ObjectID(mealId)};
-            const mealFoodsProjection = {
-                'mealId': false
-            };
-            this.mealFoodsCollection.find(mealFoodsQuery, {projection: mealFoodsProjection}).toArray((err: any, mealFoods: Array<MealFoodLink>) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    const foodsQueryArray = mealFoods.map((mealFood: MealFoodLink) => new ObjectID(mealFood.foodId));
-                    this.foodsCollection.find({ _id: { $in: foodsQueryArray } }).toArray((err: any, foods: Array<Food>) => {
-                        const responseBody = mealFoods.map((mealFood: MealFoodLink) => {
-                            const food = foods.find((food: Food) => food._id.equals(mealFood.foodId));
-                            if (!food) {
-                                return undefined
-                            } else {
-                                return new MealFood(food.name, mealFood._id, food.measurement, mealFood.qty);
-                            }
-                        });
-                        if (responseBody) {
-                            resolve(responseBody);
-                        } else {
-                            reject('no foods found for this meal');
-                        }
-                    });
-                }
-            });
+    getMealFoods(req: Request, res: Response, next: NextFunction) {
+        const reqData = { params: req.params };
+        let mealFoodsLinks: Array<MealFoodLink>;
 
-        });
+        Joi.validate(reqData, validation.getOrDeleteMealFoods, (error: any, value: any) => {
+            return (error) ? Promise.reject(error) : Promise.resolve(value);
+        }).then((success: any) => {
+            const mealFoodsQuery = {'mealId' : new ObjectID(req.params.mealId)};
+            const mealFoodsProjection = { 'mealId': false };
+            return this.mealFoodsCollection.find(mealFoodsQuery, {projection: mealFoodsProjection}).toArray();
+        }, (error: any) => {
+            const errorMessages = error.details.map((detail: any)  => detail.message);
+            res.status(400).send(new ApiErrorBody(errorMessages));
+        }).then((success: Array<MealFoodLink>) => {
+            mealFoodsLinks = success;
+            const foodsQueryArray = mealFoodsLinks.map((mealFood: MealFoodLink) => new ObjectID(mealFood.foodId));
+            return this.foodsCollection
+                .find({ _id: { $in: foodsQueryArray } })
+                .toArray()
+        }, (error: any) => {
+            const errorMessages = error.details.map((detail: any)  => detail.message);
+            res.status(400).send(new ApiErrorBody(errorMessages));
+        }).then((success: any) => {
+            const responseData = mealFoodsLinks.map((mealFood: MealFoodLink) => {
+                const food = success.find((food: Food) => food._id.equals(mealFood.foodId));
+                if (food) {return new MealFood(food.name, mealFood._id, food.measurement, mealFood.qty);};
+            });
+            res.send(new ApiSuccessBody('success', ['Got meal foods'], responseData));
+        }, (error: any) => {
+            res.status(400).send(new ApiErrorBody([error]));
+        }).catch(next);
+
     };
 
-    deleteMealFoodLink(mealFoodId: string) {
+    deleteMealFoods(mealFoodId: string) {
         const details = {'_id' : new ObjectID(mealFoodId)};
         return this.mealFoodsCollection.findOneAndDelete(details, {projection: '_id'})
     };
