@@ -56,7 +56,7 @@ export class MealFoodsService {
 
     };
 
-    deleteMealFoods(req: Request, res: Response, next: NextFunction) {
+    deleteMealFood(req: Request, res: Response, next: NextFunction) {
         const reqData = { params: req.params };
 
         Joi.validate(reqData, validation.deleteMealFoods, (error: any, value: any) => {

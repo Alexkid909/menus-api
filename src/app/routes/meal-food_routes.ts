@@ -30,6 +30,6 @@ module.exports = (app: Application, db: any) => {
     });
 
     app.delete('/meal-foods/:mealFoodId', (req: Request, res: Response, next: NextFunction) => {
-            mealFoodsService.deleteMealFoods(req, res, next);
+        mealFoodsService.deleteMealFood(req, res, next);
     });
 };
