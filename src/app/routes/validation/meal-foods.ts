@@ -3,9 +3,12 @@ const Joi = require("joi");
 export default {
     // POST /api/mealFoods
     createMealFoods: {
+        params: {
+          mealId: Joi.string().required().trim()
+        },
         body : {
-            name: Joi.string().required().trim(),
-            measurement: Joi.string().required().trim(),
+            foodId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
+            qty: Joi.number().required().min(1)
         }
     },
 

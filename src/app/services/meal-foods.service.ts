@@ -77,4 +77,23 @@ export class MealFoodsService {
         }).catch(next);
     };
 
+    createMealFood(req: Request, res: Response, next: NextFunction) {
+        const reqData = { params: req.params, body: req.body };
+        console.log(req.body);
+        Joi.validate(reqData, validation.createMealFoods, (error: any, value: any) => {
+            return (error) ? Promise.reject(error) : Promise.resolve(value);
+        }).then((success: any) => {
+            const mealFood = new MealFoodLink(new ObjectID(req.params.mealId), new ObjectID(req.body.foodId), req.body.qty);
+            return this.mealFoodsCollection.insert(mealFood)
+        }, (error: any) => {
+            console.log('error 1', error);
+            res.status(400).send(new ApiErrorBody([error]));
+        }).then((success: any) => {
+            console.log('success', success);
+            res.status(201).send(new ApiSuccessBody('success', success.ops[0]));
+        }, (error: any) => {
+            console.log('error 2', error);
+            res.status(500).send(new ApiErrorBody([error]));
+        }).catch(next);
+    }
 }
