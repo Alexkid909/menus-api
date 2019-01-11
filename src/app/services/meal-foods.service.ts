@@ -26,7 +26,7 @@ export class MealFoodsService {
         const reqData = { params: req.params };
         let mealFoodsLinks: Array<MealFoodLink>;
 
-        Joi.validate(reqData, validation.getOrDeleteMealFoods, (error: any, value: any) => {
+        Joi.validate(reqData, validation.getMealFoods, (error: any, value: any) => {
             return (error) ? Promise.reject(error) : Promise.resolve(value);
         }).then((success: any) => {
             const mealFoodsQuery = {'mealId' : new ObjectID(req.params.mealId)};
@@ -56,9 +56,25 @@ export class MealFoodsService {
 
     };
 
-    deleteMealFoods(mealFoodId: string) {
-        const details = {'_id' : new ObjectID(mealFoodId)};
-        return this.mealFoodsCollection.findOneAndDelete(details, {projection: '_id'})
+    deleteMealFoods(req: Request, res: Response, next: NextFunction) {
+        const reqData = { params: req.params };
+
+        Joi.validate(reqData, validation.deleteMealFoods, (error: any, value: any) => {
+            console.log('value', value);
+            console.log('error', error);
+            return (error) ? Promise.reject(error) : Promise.resolve(value);
+        }).then((success: any) => {
+            const details = {'_id' : new ObjectID(req.params.mealFoodId)};
+            return this.mealFoodsCollection.findOneAndDelete(details, {projection: '_id'})
+        }, (error: any) => {
+            const errorMessages = error.details.map((detail: any)  => detail.message);
+            res.status(400).send(new ApiErrorBody(errorMessages));
+        }).then((success: any) => {
+            console.log(success);
+            res.send(new ApiSuccessBody('success', [`MealFoodLink ${success.value._id} deleted`]));
+        }, (error: any) => {
+            res.status(400).send(new ApiErrorBody([error]));
+        }).catch(next);
     };
 
 }

@@ -2,15 +2,11 @@ import {Application, NextFunction, Request, Response} from "express";
 import { ObjectID } from "bson";
 import { MealFoodLink } from "../classes/mealFoodLink";
 import { MealFoodsService } from "../services/meal-foods.service";
-import {ApiSuccessBody} from "../classes/apiSuccessBody";
 
 module.exports = (app: Application, db: any) => {
     const mealFoodsService = new MealFoodsService(db);
     const standardErrorMessage = () => {
         return {error: 'An error has occured'}
-    };
-    const validateFields = () => {
-
     };
     const mealFoodsCollection = db.collection('mealFoods');
 
@@ -34,11 +30,6 @@ module.exports = (app: Application, db: any) => {
     });
 
     app.delete('/meal-foods/:mealFoodId', (req: Request, res: Response, next: NextFunction) => {
-        const body = new ApiSuccessBody('success', []);
-        mealFoodsService.deleteMealFoods(req.params.mealFoodId).then(doc => {
-            body.newMessage(`MealFoodLink ${doc.value._id} deleted`);
-            console.log(body);
-            res.send(body);
-        }).catch(next);
+            mealFoodsService.deleteMealFoods(req, res, next);
     });
 };

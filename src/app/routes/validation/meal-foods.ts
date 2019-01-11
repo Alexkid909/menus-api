@@ -10,11 +10,19 @@ export default {
     },
 
     // GET-PUT-DELETE /api/tasks/:taskId
-    getOrDeleteMealFoods: {
+    getMealFoods: {
         params: {
             mealId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required()
         }
     },
+
+    // GET-PUT-DELETE /api/tasks/:taskId
+    deleteMealFoods: {
+        params: {
+            mealFoodId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required()
+        }
+    },
+
 
     // PUT /api/mealFoods/:id
     updateMealFoods: {
