@@ -32,9 +32,10 @@ export default {
         params: {
             mealFoodId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required()
         },
-        body: {
-            name: Joi.string().required(),
-            measurement: Joi.string().required(),
+        body : {
+            foodId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
+            mealId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
+            qty: Joi.number().required().min(1)
         }
     }
 };

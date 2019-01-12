@@ -22,6 +22,12 @@ export class MealFoodsService {
     }
 
 
+    getMealsFoods(req: Request, res: Response, next: NextFunction) {
+        this.mealFoodsCollection.find({}).toArray((err: any, result: any) => {
+            (err) ? res.status(500).send(new ApiErrorBody()) : res.send(result);
+        });
+    }
+
     getMealFoods(req: Request, res: Response, next: NextFunction) {
         const reqData = { params: req.params };
         let mealFoodsLinks: Array<MealFoodLink>;
@@ -47,7 +53,7 @@ export class MealFoodsService {
         }).then((success: any) => {
             const responseData = mealFoodsLinks.map((mealFood: MealFoodLink) => {
                 const food = success.find((food: Food) => food._id.equals(mealFood.foodId));
-                if (food) {return new MealFood(food.name, mealFood._id, food.measurement, mealFood.qty);};
+                if (food) {return new MealFood(food.name, mealFood._id, food.measurement, mealFood.qty);}
             });
             res.send(new ApiSuccessBody('success', ['Got meal foods'], responseData));
         }, (error: any) => {
@@ -91,6 +97,26 @@ export class MealFoodsService {
         }).then((success: any) => {
             console.log('success', success);
             res.status(201).send(new ApiSuccessBody('success', success.ops[0]));
+        }, (error: any) => {
+            console.log('error 2', error);
+            res.status(500).send(new ApiErrorBody([error]));
+        }).catch(next);
+    }
+
+    updateMealFood(req: Request, res: Response, next: NextFunction) {
+        const reqData = { params: req.params, body: req.body };
+        Joi.validate(reqData, validation.updateMealFoods, (error: any, value: any) => {
+            return (error) ? Promise.reject(error) : Promise.resolve(value);
+        }).then((success: any) => {
+            const mealFoodLink = new MealFoodLink(new ObjectID(req.body.mealId), new ObjectID(req.body.foodId), req.body.qty);
+            const details = {'_id': new ObjectID(req.params.mealFoodId)};
+            return this.mealFoodsCollection.findOneAndUpdate(details, mealFoodLink)
+        }, (error: any) => {
+            console.log('error 1', error);
+            res.status(400).send(new ApiErrorBody([error]));
+        }).then((success: any) => {
+            console.log('success 1', success);
+            res.status(201).send(new ApiSuccessBody('success', [`MealFood ${success.value._id} updated`], success.value));
         }, (error: any) => {
             console.log('error 2', error);
             res.status(500).send(new ApiErrorBody([error]));

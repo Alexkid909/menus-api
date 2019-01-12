@@ -12,7 +12,15 @@ module.exports = (app: Application, db: any) => {
         mealFoodsService.getMealFoods(req, res, next);
     });
 
+    app.get('/meal-foods', (req: Request, res: Response, next: NextFunction) => {
+        mealFoodsService.getMealsFoods(req, res, next);
+    });
+
     app.delete('/meal-foods/:mealFoodId', (req: Request, res: Response, next: NextFunction) => {
         mealFoodsService.deleteMealFood(req, res, next);
+    });
+
+    app.put('/meal-foods/:mealFoodId', (req: Request, res: Response, next: NextFunction) => {
+        mealFoodsService.updateMealFood(req, res, next);
     });
 };
