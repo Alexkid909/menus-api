@@ -3,7 +3,7 @@ import {Collection, MongoError} from "mongodb";
 import {NextFunction, Request, Response} from "express";
 import {Meal} from "../classes/meal";
 import {ApiErrorBody} from "../classes/apiErrorBody";
-import validation from "../routes/validation/meals";
+import { validation } from "../routes/validation/meals";
 import {ApiSuccessBody} from "../classes/apiSuccessBody";
 
 const Joi = require("joi");
@@ -22,9 +22,8 @@ export class MealService {
     }
 
     getMeal(req: Request, res: Response, next: NextFunction) {
-        const reqData = { params: req.params };
 
-        Joi.validate(reqData, validation.getOrDeleteMeal, (error: any, value: any) => {
+        Joi.validate(req, validation.getOrDeleteMeal, (error: any, value: any) => {
             return (error) ? Promise.reject(error) : Promise.resolve(value);
         }).then((success: any) => {
             const details = {'_id' : new ObjectID(req.params.mealId)};
@@ -33,14 +32,14 @@ export class MealService {
             const errorMessages = error.details.map((detail: any)  => detail.message);
             res.status(400).send(new ApiErrorBody(errorMessages));
         }).then((success: any) => {
-            res.send(success);
+            res.send(new ApiSuccessBody('success', ['Found meal'], success));
         }).catch(next);
     }
 
     createMeal(req: Request, res: Response, next: NextFunction) {
-        const reqData = { body: req.body };
+        console.log(req.headers);
 
-        Joi.validate(reqData , validation.createMeal, (error: any, value: any) => {
+        Joi.validate(req, validation.createMeal, (error: any, value: any) => {
             (error) && console.log(error);
             return (error) ? Promise.reject(error) : Promise.resolve(value);
         }).then((success: any) => {
@@ -50,16 +49,13 @@ export class MealService {
             const errorMessages = error.details.map((detail: any)  => detail.message);
             res.status(400).send(new ApiErrorBody(errorMessages));
         }).then((success: any) => {
-            res.status(201).send(success.ops[0]);
+            res.status(201).send(new ApiSuccessBody('success', [`Meal created`], success.ops[0]));
         }).catch(next);
     }
 
     deleteMeal(req: Request, res: Response, next: NextFunction) {
-        const reqData = {
-            params: req.params
-        };
 
-        Joi.validate(reqData, validation.updateMeal, (error: any, value: any) => {
+        Joi.validate(req, validation.updateMeal, (error: any, value: any) => {
             return (error) ? Promise.reject(error) : Promise.resolve(value);
         }).then((success: any) => {
             const details = {'_id' : new ObjectID(req.params.mealId)};
@@ -77,12 +73,8 @@ export class MealService {
     }
 
     updateMeal(req: Request, res: Response, next: NextFunction) {
-        const reqData = {
-            params: req.params,
-            body: req.body
-        };
 
-        Joi.validate(reqData, validation.updateMeal, (error: any, value: any) => {
+        Joi.validate(req, validation.updateMeal, (error: any, value: any) => {
             return (error) ? Promise.reject(error) : Promise.resolve(value);
         }).then((success: any) => {
             const meal = new Meal(req.body.name, req.body.measurement);
