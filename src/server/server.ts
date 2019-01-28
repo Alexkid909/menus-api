@@ -1,5 +1,4 @@
-import {ApiErrorBody} from "../app/classes/apiErrorBody";
-import { Response } from "express";
+import { CustomerErrorHandler } from "../app/classes/customerErrorHandler";
 
 const express = require('express');
 const bodyParser = require("body-parser");
