@@ -1,5 +1,4 @@
-import {ApiErrorBody} from "../app/classes/apiErrorBody";
-import { Response } from "express";
+import { CustomerErrorHandler } from "../app/classes/customerErrorHandler";
 
 const express = require('express');
 const bodyParser = require("body-parser");
@@ -9,6 +8,8 @@ const cors = require('cors');
 
 const port = 3001;
 const app = express();
+const customErrorHandler = new CustomerErrorHandler();
+
 
 app.set('port', process.env.PORT || port);
 
@@ -20,18 +21,15 @@ app.use(bodyParser.json());
 
 app.use(cors());
 
-//Error handling middleware.
-
-app.use((err: any, req: Request, res: Response, next: any) => {
-    console.log('middleware err', err);
-    res.status(500).send(new ApiErrorBody());
-});
-
 MongoClient.connect(db.url, (err: any, database: any) => {
     (err) && console.log(err);
     const db = database.db('menu');
 
     require('../app/routes')(app, db);
+
+    // Error handling middleware.
+
+    app.use(customErrorHandler.handleErrors);
 
     app.listen(app.get('port'),() => {
         const date = new Date().toString();

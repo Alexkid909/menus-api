@@ -6,7 +6,7 @@ import {ApiErrorBody} from "../classes/apiErrorBody";
 import { validation } from "../routes/validation/meals";
 import {ApiSuccessBody} from "../classes/apiSuccessBody";
 
-const Joi = require("joi");
+const Joi = require('joi');
 
 export class MealService {
     mealsCollection: Collection;

@@ -33,6 +33,8 @@
     "express": "^4.16.4",
     "express-validation": "^0.4.5",
     "joi": "^7.3.0",
+    "joi-password-complexity": "^2.0.1",
+    "mongo-error-parser": "^0.1.1",
     "mongodb": "^3.0.10"
   }
 }
