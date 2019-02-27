@@ -9,6 +9,10 @@ module.exports = (app: Application, db: any) => {
         userService.createUser(req, res, next);
     });
 
+    app.post('/users/authenticate', (req: Request, res: Response, next: NextFunction) => {
+        userService.authenticateUser(req, res, next);
+    });
+
     app.get('/users/:id', (req: Request, res: Response, next: NextFunction) => {
         res.status(501).send(new ApiErrorBody(['Route not implemented']));
         // userService.getUser(req, res, next);

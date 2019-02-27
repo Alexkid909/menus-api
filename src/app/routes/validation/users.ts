@@ -12,10 +12,18 @@ const schemas = {
             firstName:Joi.string().required().min(1),
             lastName: Joi.string().required().min(1),
             email: Joi.string().required().min(1).email(),
-            userName: Joi.string(),
+            username: Joi.string(),
             password: Joi.string().required().min(8).regex(passwordRegex),
             passwordConfirm: Joi.any().valid(Joi.ref('password')).required().options({ language: { any: { allowOnly: 'must match password' } } })
         }
+    }).unknown(true),
+    authenticateUser: Joi.object().keys({
+        headers: Joi.object().keys(new apiReqWithPayloadHeadersSchema()).unknown(true),
+        body : Joi.object().keys({
+            email: Joi.string().min(1).email(),
+            username: Joi.string().min(1),
+            password: Joi.string().required().min(8).regex(passwordRegex),
+        }).or('email', 'username')
     }).unknown(true),
     getOrDeleteUser: Joi.object().keys({
         headers: Joi.object().keys(new apiReqHeadersSchema()).unknown(true),
@@ -33,7 +41,7 @@ const schemas = {
             firstName:Joi.string().min(1),
             lastName: Joi.string().min(1),
             email: Joi.string().email().min(1),
-            userName: Joi.string().min(1),
+            username: Joi.string().min(1),
             password: Joi.string().min(8).regex(passwordRegex),
             passwordConfirm: Joi.any().valid(Joi.ref('password')).required().options({ language: { any: { allowOnly: 'must match password' } } })
 

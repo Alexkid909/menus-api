@@ -5,15 +5,22 @@ import {User} from "../classes/user";
 import {ApiErrorBody} from "../classes/apiErrorBody";
 import { validation } from "../routes/validation/users";
 import {ApiSuccessBody} from "../classes/apiSuccessBody";
+import {AuthenticationError} from "../classes/internalErrors/authError";
+const bcrypt = require('bcrypt');
 
 const Joi = require("joi");
+const moment = require('moment');
+
 
 export class UsersService {
     usersCollection: Collection;
+    loginsCollection: Collection;
 
     constructor(db: any) {
         this.usersCollection = db.collection('users');
-        this.usersCollection.createIndex({ 'email': 1, 'userName': 1 },{ unique: true, sparse: true });
+        this.usersCollection.createIndex({ 'email': 1, 'username': 1 },{ unique: true, sparse: true });
+        this.loginsCollection = db.collection('logins');
+        this.loginsCollection.createIndex({ 'identityKey': 1},{ unique: true, sparse: true });
     }
 
     // getUsers(req: Request, res: Response, next: NextFunction) {
@@ -41,18 +48,122 @@ export class UsersService {
     //     }).catch(next);
     // }
     //
+    private canAuthenticate(key: string) {
+        return this.loginsCollection.findOne({identityKey: key}).then((login: any) => {
+            if(login) {
+
+                // console.log('login.timeout', login.timeout);
+
+                let underTimeout = false;
+                if (login.hasOwnProperty('timeoutExpiry')) {
+                    const timeoutExpiry = moment(login.timeoutExpiry).add(5, 'minutes').toDate();
+                    console.log('timeoutExpiry', timeoutExpiry);
+                    console.log('time to expiry', moment(new Date()).toDate() - timeoutExpiry);
+                    underTimeout = (moment(new Date()).toDate() - timeoutExpiry) < 0;
+                }
+
+                console.log('underTimeout', underTimeout);
+
+                if(login.failedAttempts < 5 && !underTimeout) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return true;
+            }
+        });
+    };
+
+    private failedLoginAttempt(key: string, next: NextFunction) {
+
+        const query = {identityKey: key};
+        // const update = {$inc: {failedAttempts: 1}, $currentDate: { timeout: true}};
+        const update = {$inc: {failedAttempts: 1}};
+        const options = {setDefaultsOnInsert: true, upsert: true, returnOriginal: false};
+        this.loginsCollection.findOneAndUpdate(query, update, options).then((success: any) => {
+            if(success.value.failedAttempts > 4) {
+                console.log();
+                const update = {
+                    $set: {
+                        failedAttempts: 0,
+                        timeoutExpiry: new Date()
+                    },
+                };
+                this.loginsCollection.findOneAndUpdate(query, update, options)
+            }
+        }, (error: any) => {
+            console.log('error', error);
+        }).catch(next)
+    }
+
+    private successfulLoginAttempt(key: string, next: NextFunction) {
+
+        const query = {identityKey: key};
+        const update = {$inc: {failedAttempts: 1}, $currentDate: {timeout: true}};
+
+
+        this.loginsCollection.deleteOne(query).then((success: any) => {
+            // console.log('success', success);
+        });
+    }
+
+
+
+
     createUser(req: Request, res: Response, next: NextFunction) {
         Joi.validate(req, validation.createUser, (error: any, value: any) => {
             return (error) ? Promise.reject(error) : Promise.resolve(value);
         }).then((success: any) => {
-            const { firstName, lastName, email, userName, password} = req.body;
-            const user = new User(firstName, lastName, email, password, userName);
+            return bcrypt.hash(req.body.password, 16.5);
+        }).then((hash: any) => {
+            const { firstName, lastName, email, username} = req.body;
+            const user = new User(firstName, lastName, email, hash, username);
             console.log('user', user);
             return this.usersCollection.insert(user);
         }).then((success: any) => {
-            res.status(201).send(new ApiSuccessBody('success', [`User created`], success.ops[0]));
+            res.status(204).send(new ApiSuccessBody('success', [`User created`]));
         }).catch(next);
     }
+
+    authenticateUser(req: any, res: Response, next: NextFunction) {
+        const identityKey = `${req.body.username}-${req.clientIp}`;
+
+
+        Joi.validate(req, validation.authenticateUser, (error: any, value: any) => {
+            return (error) ? Promise.reject(error) : Promise.resolve(value);
+        }).then((success: any) => {
+            return this.canAuthenticate(identityKey).then((success) => {
+                console.log('cam auth', success);
+                return success ?
+                    Promise.resolve('passed') :
+                    Promise.reject(  new AuthenticationError('Account locked', 'Sorry this account is temporarily locked, please try again later'));
+            });
+        }).then((success: any) => {
+            console.log('can authenticate', success);
+            const details = req.body.username ? {'username': req.body.username} : {'email': req.body.email};
+            return this.usersCollection.findOne(details);
+        }).then((success: any) => {
+            if (success) {
+                return bcrypt.compare(req.body.password, success.hashedPassword);
+            } else {
+                this.failedLoginAttempt(identityKey, next);
+                return Promise.reject( new AuthenticationError('No such user', 'Invalid username or password'));
+            }
+        }).then((success: any) => {
+            if (success) {
+                return Promise.resolve('You are now signed in');
+            } else {
+                this.failedLoginAttempt(identityKey, next);
+                return Promise.reject(new AuthenticationError('Hash check failed', 'Invalid username or password'));
+            }
+        }).then((success: string) => {
+            console.log(success);
+            this.successfulLoginAttempt(identityKey, next);
+            res.status(200).send(new ApiSuccessBody('success', [success]));
+        }).catch(next);
+    }
+
     //
     // deleteUser(req: Request, res: Response, next: NextFunction) {
     //

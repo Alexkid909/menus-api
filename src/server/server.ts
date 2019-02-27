@@ -5,6 +5,8 @@ const bodyParser = require("body-parser");
 const db = require('../config/db');
 const MongoClient = require("mongodb").MongoClient;
 const cors = require('cors');
+// require request-ip and register it as middleware
+const requestIp = require('request-ip');
 
 const port = 3001;
 const app = express();
@@ -12,6 +14,10 @@ const customErrorHandler = new CustomerErrorHandler();
 
 
 app.set('port', process.env.PORT || port);
+
+// IP address middleware.
+
+app.use(requestIp.mw());
 
 //Body parsing middleware.
 
