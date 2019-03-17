@@ -1,5 +1,6 @@
 import { CustomerErrorHandler } from "../app/classes/customerErrorHandler";
 import {required} from "joi";
+import { AuthService } from "../app/services/auth.service";
 
 const express = require('express');
 const bodyParser = require("body-parser");
@@ -19,6 +20,10 @@ app.set('port', process.env.PORT || port);
 // IP address middleware.
 
 app.use(requestIp.mw());
+
+//Auth token verification middleware'
+
+app.use(AuthService.verifyAuthentication);
 
 //Body parsing middleware.
 

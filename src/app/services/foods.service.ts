@@ -9,6 +9,7 @@ const Joi = require("joi");
 
 export class FoodsService {
     foodsCollection: Collection;
+
     constructor(db: any) {
         this.foodsCollection = db.collection('foods');
     }
@@ -25,7 +26,7 @@ export class FoodsService {
 
         Joi.validate(reqData, validation.getOrDeleteFood, (error: any, value: any) => {
             return (error) ? Promise.reject(error) : Promise.resolve(value);
-        }).then((success: any) => {
+        }).then(() => {
             const details = {'_id' : new ObjectID(req.params.foodId)};
             return this.foodsCollection.findOne(details);
         }).then((success: any) => {
@@ -54,7 +55,7 @@ export class FoodsService {
 
         Joi.validate(req, validation.getOrDeleteFood, (error: any, value: any) => {
             return (error) ? Promise.reject(error) : Promise.resolve(value);
-        }).then((success: any) => {
+        }).then(() => {
             const details = {'_id' : new ObjectID(req.params.foodId)};
             return this.foodsCollection.findOneAndDelete(details)
         }).then((doc: any) => {
@@ -70,7 +71,7 @@ export class FoodsService {
 
         Joi.validate(req, validation.updateFood, (error: any, value: any) => {
            return (error) ? Promise.reject(error) : Promise.resolve(value);
-        }).then((success: any) => {
+        }).then(() => {
             console.log('this', this.foodsCollection);
             const food = new Food(req.body.name, req.body.measurement);
             const details = {'_id': new ObjectID(req.params.foodId)};

@@ -1,7 +1,5 @@
-import {Application, NextFunction, Request, Response} from "express";
+import { Application, NextFunction, Request, Response } from "express";
 import { FoodsService } from "../services/foods.service";
-
-const Joi = require("joi");
 
 module.exports = (app: Application, db: any) => {
     const foodService = new FoodsService(db);
