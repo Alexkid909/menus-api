@@ -1,4 +1,5 @@
 import { CustomerErrorHandler } from "../app/classes/customerErrorHandler";
+import {required} from "joi";
 
 const express = require('express');
 const bodyParser = require("body-parser");

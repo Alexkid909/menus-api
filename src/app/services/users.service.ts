@@ -6,10 +6,13 @@ import {ApiErrorBody} from "../classes/apiErrorBody";
 import { validation } from "../routes/validation/users";
 import {ApiSuccessBody} from "../classes/apiSuccessBody";
 import {AuthenticationError} from "../classes/internalErrors/authError";
+import { JwtService } from "./jwt.service";
+
 const bcrypt = require('bcrypt');
 
 const Joi = require("joi");
 const moment = require('moment');
+const jwtService = new JwtService();
 
 
 export class UsersService {
@@ -75,6 +78,10 @@ export class UsersService {
         });
     };
 
+    private loginInProgress() {
+        //@TODO implement setting login in progress and handling where there is a login in progress.
+    }
+
     private failedLoginAttempt(key: string, next: NextFunction) {
 
         const query = {identityKey: key};
@@ -119,16 +126,23 @@ export class UsersService {
         }).then((hash: any) => {
             const { firstName, lastName, email, username} = req.body;
             const user = new User(firstName, lastName, email, hash, username);
-            console.log('user', user);
+
             return this.usersCollection.insert(user);
         }).then((success: any) => {
-            res.status(204).send(new ApiSuccessBody('success', [`User created`]));
+            const user = success.ops[0];
+            const payload = {
+                iss: req.hostname,
+                sub: user.username
+            };
+            const token = jwtService.encode(payload, 'quiet');
+            console.log('success', success);
+            res.status(201).send(new ApiSuccessBody('success', [`User created`], {username: user.username, token}));
         }).catch(next);
     }
 
     authenticateUser(req: any, res: Response, next: NextFunction) {
         const identityKey = `${req.body.username}-${req.clientIp}`;
-
+        console.log('session', req.session);
 
         Joi.validate(req, validation.authenticateUser, (error: any, value: any) => {
             return (error) ? Promise.reject(error) : Promise.resolve(value);
