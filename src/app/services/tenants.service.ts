@@ -1,8 +1,9 @@
 import { Collection, ObjectID } from "mongodb";
 import { Tenant } from "../classes/tenant";
-import { ApiErrorBody } from "../classes/apiErrorBody";
-import { ApiSuccessBody } from "../classes/apiSuccessBody";
-import { NextFunction, Request, Response } from "express";
+import { ApiErrorBody } from "../classes/response/apiErrorBody";
+import { ApiSuccessBody } from "../classes/response/apiSuccessBody";
+import { NextFunction, Response } from "express";
+import { CustomRequest } from "../classes/request/customRequest";
 import { validation } from "../routes/validation/tenants";
 
 
@@ -15,19 +16,19 @@ export class TenantsService {
         this.tenantsCollection = db.collection('tenants');
     }
 
-    getTenants(req: Request, res: Response, next: NextFunction) {
+    getTenants(req: CustomRequest, res: Response, next: NextFunction) {
         this.tenantsCollection.find({}).toArray((err: any, result: any) => {
             (err) ? res.status(500).send(new ApiErrorBody()) : res.send(result);
         });
     }
 
-    getTenant(req: Request, res: Response, next: NextFunction) {
+    getTenant(req: CustomRequest, res: Response, next: NextFunction) {
         const reqData = { params: req.params };
 
-        Joi.validate(reqData, validation.getOrDeleteTenant, (error: any, value: any) => {
-            const errorMessages = error.details.map((detail: any)  => detail.message);
+        Joi.validate(reqData, validation.getOrDeleteTenant, (error: any, value: any) =>         {
+            return (error) ? Promise.reject(error) : Promise.resolve(value);
         }).then((success: any) => {
-            const details = {'_id' : new ObjectID(req.params.id)};
+            const details = {'_id' : new ObjectID(req.params.tenantId)};
             return this.tenantsCollection.findOne(details);
         }, (error: any) => {
             const errorMessages = error.details.map((detail: any)  => detail.message);
@@ -37,13 +38,13 @@ export class TenantsService {
         }).catch(next);
     }
 
-    createTenant(req: Request, res: Response, next: NextFunction) {
+    createTenant(req: CustomRequest, res: Response, next: NextFunction) {
         const reqData = { body: req.body };
         Joi.validate(reqData , validation.createTenant, (error: any, value: any) => {
             return (error) ? Promise.reject(error) : Promise.resolve(value);
         }).then((success: any) => {
             console.log('success 1', success);
-            const tenant = new Tenant(req.body.name, req.body.measurement);
+            const tenant = new Tenant(req.body.name);
             return this.tenantsCollection.insert(tenant);
         }, (error: any) => {
             const errorMessages = error.details.map((detail: any)  => detail.message);
@@ -53,7 +54,7 @@ export class TenantsService {
         }).catch(next);
     }
 
-    deleteTenant(req: Request, res: Response, next: NextFunction) {
+    deleteTenant(req: CustomRequest, res: Response, next: NextFunction) {
         const reqData = {
             params: req.params
         };
@@ -76,7 +77,7 @@ export class TenantsService {
 
     };
 
-    updateTenant(req: Request, res: Response, next: NextFunction) {
+    updateTenant(req: CustomRequest, res: Response, next: NextFunction) {
         const reqData = {
             params: req.params,
             body: req.body
@@ -85,10 +86,9 @@ export class TenantsService {
         Joi.validate(reqData, validation.updateTenant, (error: any, value: any) => {
            return (error) ? Promise.reject(error) : Promise.resolve(value);
         }).then((success: any) => {
-            console.log('this', this.tenantsCollection);
-            const tenant = new Tenant(req.body.name, req.body.measurement);
+            const tenant = new Tenant(req.body.name);
             const details = {'_id': new ObjectID(req.params.tenantId)};
-            return this.tenantsCollection.findOneAndUpdate(details, tenant)
+            return this.tenantsCollection.findOneAndUpdate(details, tenant, {returnOriginal: false})
         }, (error: any) => {
             const errorMessages = error.details.map((detail: any) => detail.message);
             res.status(400).send(new ApiErrorBody(errorMessages));

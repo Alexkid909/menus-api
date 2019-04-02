@@ -1,8 +1,9 @@
 import { Collection } from "mongodb";
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Response } from "express";
+import { CustomRequest } from "../classes/request/customRequest";
 import { User } from "../classes/user";
 import { validation } from "../routes/validation/users";
-import { ApiSuccessBody } from "../classes/apiSuccessBody";
+import { ApiSuccessBody } from "../classes/response/apiSuccessBody";
 import { JwtService } from "./jwt.service";
 
 const bcrypt = require('bcrypt');
@@ -19,13 +20,13 @@ export class UsersService {
         this.usersCollection.createIndex({ 'email': 1, 'username': 1 },{ unique: true, sparse: true });
     }
 
-    // getUsers(req: Request, res: Response, next: NextFunction) {
+    // getUsers(req: CustomRequest, res: Response, next: NextFunction) {
     //     this.usersCollection.find({}).toArray((err: any, result: any) => {
     //         (err) ? res.send(new ApiErrorBody()) : res.send(result);
     //     });
     // }
     //
-    // getUser(req: Request, res: Response, next: NextFunction) {
+    // getUser(req: CustomRequest, res: Response, next: NextFunction) {
     //
     //     Joi.validate(req.body.password, new JoiPasswordComplexity(), (error: any, value: any) => {
     //         return (error) ? Promise.reject(error) : Promise.resolve(value);
@@ -68,7 +69,7 @@ export class UsersService {
     }
 
     //
-    // deleteUser(req: Request, res: Response, next: NextFunction) {
+    // deleteUser(req: CustomRequest, res: Response, next: NextFunction) {
     //
     //     Joi.validate(req, validation.updateUser, (error: any, value: any) => {
     //         return (error) ? Promise.reject(error) : Promise.resolve(value);
@@ -87,14 +88,14 @@ export class UsersService {
     //     }).catch(next);
     // }
     //
-    // updateUser(req: Request, res: Response, next: NextFunction) {
+    // updateUser(req: CustomRequest, res: Response, next: NextFunction) {
     //
     //     Joi.validate(req, validation.updateUser, (error: any, value: any) => {
     //         return (error) ? Promise.reject(error) : Promise.resolve(value);
     //     }).then((success: any) => {
     //         const user = new User(req.body.name, req.body.measurement);
     //         const details = {'_id': new ObjectID(req.params.userId)};
-    //         return this.usersCollection.findOneAndUpdate(details, user)
+    //         return this.usersCollection.findOneAndUpdate(details, user, {returnOriginal: false})
     //     }, (error: any) => {
     //         const errorMessages = error.details.map((detail: any) => detail.message);
     //         res.status(400).send(new ApiErrorBody(errorMessages));

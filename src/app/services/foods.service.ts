@@ -1,9 +1,12 @@
 import { Collection, ObjectID } from "mongodb";
-import { Food } from "../classes/food";
+import { Food } from "../classes/artefacts/food";
 import { validation } from "../routes/validation/foods";
-import { ApiErrorBody } from "../classes/apiErrorBody";
-import { ApiSuccessBody } from "../classes/apiSuccessBody";
+import { ApiErrorBody } from "../classes/response/apiErrorBody";
+import { ApiSuccessBody } from "../classes/response/apiSuccessBody";
 import { NextFunction, Request, Response } from "express";
+import { CustomRequest } from "../classes/request/customRequest";
+import {ValidationError} from "../classes/internalErrors/validationError";
+
 
 const Joi = require("joi");
 
@@ -14,19 +17,26 @@ export class FoodsService {
         this.foodsCollection = db.collection('foods');
     }
 
-    getFoods(req: Request, res: Response, next: NextFunction) {
-        this.foodsCollection.find({}).toArray((err: any, result: any) => {
-            (err) ? res.status(500).send(new ApiErrorBody()) : res.send(result);
-        });
+    private validationHandler(error: any, value: any) {
+        if (error) {
+            const friendlyMessages = error.details.map((detail: any) => detail.message);
+            return Promise.reject(new ValidationError(error.name, friendlyMessages, error))
+        }
+        return Promise.resolve(value);
     }
 
-    getFood(req: Request, res: Response, next: NextFunction) {
-        console.log('req.params', req.params);
-        const reqData = { params: req.params };
+    getFoods(req: CustomRequest, res: Response, next: NextFunction) {
+        Joi.validate(req, validation.getFoods, this.validationHandler)
+            .then((success: any) => {
+            const details = {'_id' : new ObjectID(req.params.mealId)};
+            return this.foodsCollection.find({}).toArray();
+        }).then((success: any) => {
+            res.send(new ApiSuccessBody('success', ['Found meal'], success));
+        }).catch(next);
+    }
 
-        Joi.validate(reqData, validation.getOrDeleteFood, (error: any, value: any) => {
-            return (error) ? Promise.reject(error) : Promise.resolve(value);
-        }).then(() => {
+    getFood(req: CustomRequest, res: Response, next: NextFunction) {
+        Joi.validate(req, validation.getOrDeleteFood, this.validationHandler).then(() => {
             const details = {'_id' : new ObjectID(req.params.foodId)};
             return this.foodsCollection.findOne(details);
         }).then((success: any) => {
@@ -35,27 +45,20 @@ export class FoodsService {
         }).catch(next);
     }
 
-    createFood(req: Request, res: Response, next: NextFunction) {
-        const reqData = { body: req.body };
-        Joi.validate(reqData , validation.createFood, (error: any, value: any) => {
-            return (error) ? Promise.reject(error) : Promise.resolve(value);
-        }).then((success: any) => {
-            console.log('success 1', success);
-            const food = new Food(req.body.name, req.body.measurement);
+    createFood(req: CustomRequest, res: Response, next: NextFunction) {
+        // console.log('req.body', req.body, 'req.headers', req.headers)
+        Joi.validate(req , validation.createFood, this.validationHandler).then((success: any) => {
+            const food = new Food(req.body.name, req.body.measurement, new ObjectID(req.headers['tenant-id']));
             return this.foodsCollection.insert(food);
-        }, (error: any) => {
-            const errorMessages = error.details.map((detail: any)  => detail.message);
-            res.status(400).send(new ApiErrorBody(errorMessages));
         }).then((success: any) => {
+            console.log(success);
             res.status(201).send(success.ops[0]);
         }).catch(next);
     }
 
-    deleteFood(req: Request, res: Response, next: NextFunction) {
+    deleteFood(req: CustomRequest, res: Response, next: NextFunction) {
 
-        Joi.validate(req, validation.getOrDeleteFood, (error: any, value: any) => {
-            return (error) ? Promise.reject(error) : Promise.resolve(value);
-        }).then(() => {
+        Joi.validate(req, validation.getOrDeleteFood, this.validationHandler).then(() => {
             const details = {'_id' : new ObjectID(req.params.foodId)};
             return this.foodsCollection.findOneAndDelete(details)
         }).then((doc: any) => {
@@ -67,15 +70,12 @@ export class FoodsService {
 
     };
 
-    updateFood(req: Request, res: Response, next: NextFunction) {
+    updateFood(req: CustomRequest, res: Response, next: NextFunction) {
 
-        Joi.validate(req, validation.updateFood, (error: any, value: any) => {
-           return (error) ? Promise.reject(error) : Promise.resolve(value);
-        }).then(() => {
-            console.log('this', this.foodsCollection);
-            const food = new Food(req.body.name, req.body.measurement);
+        Joi.validate(req, validation.updateFood, this.validationHandler).then(() => {
+            const food = new Food(req.body.name, req.body.measurement, new ObjectID(req.headers['tenant-id']));
             const details = {'_id': new ObjectID(req.params.foodId)};
-            return this.foodsCollection.findOneAndUpdate(details, food)
+            return this.foodsCollection.findOneAndUpdate(details, food, {returnOriginal: false})
         }).then((success: any) => {
             res.send(new ApiSuccessBody('success', success.value));
         }).catch(next);

@@ -41,7 +41,6 @@ export class JwtService {
         const payload = JSON.parse(this.base64decode(tokenSegments[1]));
         const rawSignature = `${tokenSegments[0]}.${tokenSegments[1]}`;
 
-
         if(!this.verifySignature(rawSignature, 'quiet', tokenSegments[2])) {
             throw new Error("Verification failed");
         };

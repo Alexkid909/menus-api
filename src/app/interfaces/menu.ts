@@ -1,4 +1,4 @@
-import { Meal } from "../classes/meal";
+import { Meal } from "../classes/artefacts/meal";
 
 export interface Menu {
     id: string;

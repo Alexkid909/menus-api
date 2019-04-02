@@ -2,8 +2,9 @@ import { AuthenticationError } from "../classes/internalErrors/authError";
 import { Collection } from "mongodb";
 import { NextFunction, Response } from "express";
 import { validation } from "../routes/validation/users";
-import { ApiSuccessBody } from "../classes/apiSuccessBody";
+import { ApiSuccessBody } from "../classes/response/apiSuccessBody";
 import { JwtService } from "./jwt.service";
+import { CustomRequest } from "../classes/request/customRequest";
 
 const bcrypt = require('bcrypt');
 
@@ -83,6 +84,7 @@ export class AuthService {
 
     static verifyAuthentication(req: any, res: Response, next: NextFunction) {
 
+
         if(req.path == '/authenticate') {
             next()
         } else {
@@ -95,6 +97,7 @@ export class AuthService {
                 token = req.headers.authorization.split(' ')[1];
                 payload = jwtService.decode(token, 'quiet');
                 if(!payload.sub || !payload.iss || req.clientIp !== payload.iss) {
+                    console.log(payload, req.clientIp);
                     res.status(401).send(new ApiSuccessBody('failure', ['Authentication failure']))
                 } else {
                     next();
@@ -108,7 +111,6 @@ export class AuthService {
 
     authenticateUser(req: any, res: Response, next: NextFunction) {
         const identityKey = `${req.body.username}-${req.clientIp}`;
-        console.log('session', req.session);
 
         Joi.validate(req, validation.authenticateUser, (error: any, value: any) => {
             return (error) ? Promise.reject(error) : Promise.resolve(value);
@@ -117,7 +119,7 @@ export class AuthService {
                 console.log('cam auth', success);
                 return success ?
                     Promise.resolve('passed') :
-                    Promise.reject(  new AuthenticationError('Account locked', 'Sorry this account is temporarily locked, please try again later'));
+                    Promise.reject(  new AuthenticationError('Account locked', ['Sorry this account is temporarily locked, please try again later']));
             });
         }).then((success: any) => {
             console.log('can authenticate', success);
@@ -128,14 +130,14 @@ export class AuthService {
                 return bcrypt.compare(req.body.password, success.hashedPassword);
             } else {
                 this.failedLoginAttempt(identityKey, next);
-                return Promise.reject( new AuthenticationError('No such user', 'Invalid username or password'));
+                return Promise.reject( new AuthenticationError('No such user', ['Invalid username or password']));
             }
         }).then((success: any) => {
             if (success) {
                 return Promise.resolve('You are now signed in');
             } else {
                 this.failedLoginAttempt(identityKey, next);
-                return Promise.reject(new AuthenticationError('Hash check failed', 'Invalid username or password'));
+                return Promise.reject(new AuthenticationError('Hash check failed', ['Invalid username or password']));
             }
         }).then((success: string) => {
             this.successfulLoginAttempt(identityKey, next);

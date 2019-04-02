@@ -1,8 +1,9 @@
-import {Application, Request, Response} from "express";
-// import { Note } from "../interfaces/note";
+import {Application, Response} from "express";
 import {MongoError} from "mongodb";
 import {ObjectID} from "bson";
 import { Menu } from '../interfaces/menu'
+import { CustomRequest } from "../classes/request/customRequest";
+
 
 module.exports = (app: Application, db: any) => {
     const menuCollection = db.collection('menus');

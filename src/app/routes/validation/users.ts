@@ -1,5 +1,5 @@
-import {apiReqWithPayloadHeadersSchema} from "../../classes/apiReqWithPayloadHeadersSchema";
-import {apiReqHeadersSchema} from "../../classes/apiReqHeadersSchema";
+import {ApiReqWithPayloadHeadersSchema} from "../../classes/request/apiReqWithPayloadHeadersSchema";
+import {ApiReqHeadersSchema} from "../../classes/request/apiReqHeadersSchema";
 
 const Joi = require("joi");
 const passwordRegex = new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,})");
@@ -7,7 +7,7 @@ const passwordRegex = new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%
 
 const schemas = {
     createUser: Joi.object().keys({
-        headers: Joi.object().keys(new apiReqWithPayloadHeadersSchema()).unknown(true),
+        headers: Joi.object().keys(new ApiReqWithPayloadHeadersSchema()).unknown(true),
         body : {
             firstName:Joi.string().required().min(1),
             lastName: Joi.string().required().min(1),
@@ -18,7 +18,7 @@ const schemas = {
         }
     }).unknown(true),
     authenticateUser: Joi.object().keys({
-        headers: Joi.object().keys(new apiReqWithPayloadHeadersSchema()).unknown(true),
+        headers: Joi.object().keys(new ApiReqWithPayloadHeadersSchema()).unknown(true),
         body : Joi.object().keys({
             email: Joi.string().min(1).email(),
             username: Joi.string().min(1),
@@ -26,13 +26,13 @@ const schemas = {
         }).or('email', 'username')
     }).unknown(true),
     getOrDeleteUser: Joi.object().keys({
-        headers: Joi.object().keys(new apiReqHeadersSchema()).unknown(true),
+        headers: Joi.object().keys(new ApiReqHeadersSchema()).unknown(true),
         params: {
             userId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required()
         }
     }).unknown(true),
     updateUser: Joi.object().keys({
-        headers: Joi.object().keys(new apiReqWithPayloadHeadersSchema()).unknown(true),
+        headers: Joi.object().keys(new ApiReqWithPayloadHeadersSchema()).unknown(true),
         params: {
             userId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required()
         },

@@ -1,21 +1,19 @@
 import {Response} from "express";
-import {ApiSuccessBody} from "./apiSuccessBody";
-import {ApiErrorBody} from "./apiErrorBody";
+import {ApiSuccessBody} from "./response/apiSuccessBody";
+import {ApiErrorBody} from "./response/apiErrorBody";
 import { ValidationError } from "./internalErrors/validationError";
-import {AuthenticationError} from "./internalErrors/authError";
-import {DatabaseError} from "./internalErrors/databaseError";
+import { AuthenticationError } from "./internalErrors/authError";
+import { DatabaseError } from "./internalErrors/databaseError";
+import { CustomRequest } from "./request/customRequest";
 
 
 const mongoParse = require('mongo-error-parser');
 
-const handleErrors = (error: any, req: Request, res: Response, next: any) => {
-
-};
 
 export class CustomerErrorHandler {
     handleErrors: any;
     constructor() {
-        this.handleErrors = (error: any, req: Request, res: Response, next: any) => {
+        this.handleErrors = (error: any, req: CustomRequest, res: Response, next: any) => {
             switch (error.constructor) {
                 case ValidationError:
                     this.handleValidationError(error, res);
@@ -56,12 +54,12 @@ export class CustomerErrorHandler {
         }
     }
 
-    private handleValidationError = (error: any, res: Response) => {
-        const errorMessages = error.details.map((detail: any) => detail.message.replace(/\\|\"/g,""));
-        if(error.details[0].path.includes('params')) {
-            res.status(422).send(new ApiSuccessBody('fail', errorMessages));
+    private handleValidationError = (error: ValidationError, res: Response) => {
+        // const errorMessages = error.details.map((detail: any) => detail.message.replace(/\\|\"/g,""));
+        if(error.data.details.some((data: any) => data.path.includes('params'))) {
+            res.status(422).send(new ApiSuccessBody('fail', error.friendlyMessages));
         } else {
-            res.status(400).send(new ApiSuccessBody('fail', errorMessages));
+            res.status(400).send(new ApiSuccessBody('fail', error.friendlyMessages));
         }
     };
 
@@ -72,11 +70,11 @@ export class CustomerErrorHandler {
             case 'Hash check failed':
             case 'No such user':
                 setTimeout(() => {
-                    res.status(404).send( new ApiSuccessBody('fail', [error.friendlyMessage]));
+                    res.status(404).send( new ApiSuccessBody('fail', error.friendlyMessages));
                 }, delay);
                 break;
             case 'Account locked':
-                res.status(403).send( new ApiSuccessBody('fail', [error.friendlyMessage]));
+                res.status(403).send( new ApiSuccessBody('fail', error.friendlyMessages));
                 break;
             default:
                 this.handleOtherError(error, res);

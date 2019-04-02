@@ -1,9 +1,9 @@
 import {JoiObject} from "joi";
 
 const Joi = require('joi');
-import {apiReqHeadersSchema} from "./apiReqHeadersSchema";
+import {ApiReqHeadersSchema} from "./apiReqHeadersSchema";
 
-export class apiReqWithPayloadHeadersSchema extends apiReqHeadersSchema{
+export class ApiReqWithPayloadHeadersSchema extends ApiReqHeadersSchema{
     'content-type': JoiObject;
     constructor() {
         super();
