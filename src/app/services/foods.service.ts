@@ -1,11 +1,11 @@
 import { Collection, ObjectID } from "mongodb";
 import { Food } from "../classes/artefacts/food";
 import { validation } from "../routes/validation/foods";
-import { ApiErrorBody } from "../classes/response/apiErrorBody";
 import { ApiSuccessBody } from "../classes/response/apiSuccessBody";
 import { NextFunction, Request, Response } from "express";
 import { CustomRequest } from "../classes/request/customRequest";
 import {ValidationError} from "../classes/internalErrors/validationError";
+import {HelperService} from "./helpers.service";
 
 
 const Joi = require("joi");
@@ -17,16 +17,8 @@ export class FoodsService {
         this.foodsCollection = db.collection('foods');
     }
 
-    private validationHandler(error: any, value: any) {
-        if (error) {
-            const friendlyMessages = error.details.map((detail: any) => detail.message);
-            return Promise.reject(new ValidationError(error.name, friendlyMessages, error))
-        }
-        return Promise.resolve(value);
-    }
-
     getFoods(req: CustomRequest, res: Response, next: NextFunction) {
-        Joi.validate(req, validation.getFoods, this.validationHandler)
+        Joi.validate(req, validation.getFoods, HelperService.validationHandler)
             .then((success: any) => {
             const details = {'_id' : new ObjectID(req.params.mealId)};
             return this.foodsCollection.find({}).toArray();
@@ -36,7 +28,7 @@ export class FoodsService {
     }
 
     getFood(req: CustomRequest, res: Response, next: NextFunction) {
-        Joi.validate(req, validation.getOrDeleteFood, this.validationHandler).then(() => {
+        Joi.validate(req, validation.getOrDeleteFood, HelperService.validationHandler).then(() => {
             const details = {'_id' : new ObjectID(req.params.foodId)};
             return this.foodsCollection.findOne(details);
         }).then((success: any) => {
@@ -47,7 +39,7 @@ export class FoodsService {
 
     createFood(req: CustomRequest, res: Response, next: NextFunction) {
         // console.log('req.body', req.body, 'req.headers', req.headers)
-        Joi.validate(req , validation.createFood, this.validationHandler).then((success: any) => {
+        Joi.validate(req , validation.createFood, HelperService.validationHandler).then((success: any) => {
             const food = new Food(req.body.name, req.body.measurement, new ObjectID(req.headers['tenant-id']));
             return this.foodsCollection.insert(food);
         }).then((success: any) => {
@@ -58,7 +50,7 @@ export class FoodsService {
 
     deleteFood(req: CustomRequest, res: Response, next: NextFunction) {
 
-        Joi.validate(req, validation.getOrDeleteFood, this.validationHandler).then(() => {
+        Joi.validate(req, validation.getOrDeleteFood, HelperService.validationHandler).then(() => {
             const details = {'_id' : new ObjectID(req.params.foodId)};
             return this.foodsCollection.findOneAndDelete(details)
         }).then((doc: any) => {
@@ -72,7 +64,7 @@ export class FoodsService {
 
     updateFood(req: CustomRequest, res: Response, next: NextFunction) {
 
-        Joi.validate(req, validation.updateFood, this.validationHandler).then(() => {
+        Joi.validate(req, validation.updateFood, HelperService.validationHandler).then(() => {
             const food = new Food(req.body.name, req.body.measurement, new ObjectID(req.headers['tenant-id']));
             const details = {'_id': new ObjectID(req.params.foodId)};
             return this.foodsCollection.findOneAndUpdate(details, food, {returnOriginal: false})

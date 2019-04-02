@@ -3,11 +3,10 @@ import { Collection } from "mongodb";
 import { NextFunction, Response } from "express";
 import { CustomRequest } from "../classes/request/customRequest";
 import {Meal} from "../classes/artefacts/meal";
-import {ApiErrorBody} from "../classes/response/apiErrorBody";
 import { validation } from "../routes/validation/meals";
 import {ApiSuccessBody} from "../classes/response/apiSuccessBody";
 import {ValidationError} from "../classes/internalErrors/validationError";
-import {Food} from "../classes/artefacts/food";
+import { HelperService } from "./helpers.service";
 
 const Joi = require('joi');
 
@@ -19,13 +18,7 @@ export class MealService {
     }
 
     getMeals(req: CustomRequest, res: Response, next: NextFunction) {
-        Joi.validate(req, validation.getMeals, (error: any, value: any) => {
-            if (error) {
-                const friendlyMessages = error.details.map((detail: any) => detail.message);
-                return Promise.reject(new ValidationError(error.name, friendlyMessages, error))
-            }
-            return Promise.resolve(value);
-        }).then((success: any) => {
+        Joi.validate(req, validation.getMeals, HelperService.validationHandler).then((success: any) => {
             const details = {'_id' : new ObjectID(req.params.mealId)};
             return this.mealsCollection.find({}).toArray();
         }).then((success: any) => {
@@ -34,13 +27,7 @@ export class MealService {
     }
 
     getMeal(req: CustomRequest, res: Response, next: NextFunction) {
-        Joi.validate(req, validation.getOrDeleteMeal, (error: any, value: any) => {
-            if (error) {
-                const friendlyMessages = error.details.map((detail: any) => detail.message);
-                return Promise.reject(new ValidationError(error.name, friendlyMessages, error))
-            }
-            return Promise.resolve(value);
-        }).then((success: any) => {
+        Joi.validate(req, validation.getOrDeleteMeal, HelperService.validationHandler).then((success: any) => {
             const details = {'_id' : new ObjectID(req.params.mealId)};
             return this.mealsCollection.findOne(details);
         }).then((success: any) => {
@@ -49,13 +36,7 @@ export class MealService {
     }
 
     createMeal(req: CustomRequest, res: Response, next: NextFunction) {
-        Joi.validate(req, validation.createMeal, (error: any, value: any) => {
-            if (error) {
-                const friendlyMessages = error.details.map((detail: any) => detail.message);
-                return Promise.reject(new ValidationError(error.name, friendlyMessages, error))
-            }
-            return Promise.resolve(value);
-        }).then((success: any) => {
+        Joi.validate(req, validation.createMeal, HelperService.validationHandler).then((success: any) => {
             const meal = new Meal(req.body.name, new ObjectID(req.headers['tenant-id']));
             return this.mealsCollection.insert(meal);
         }).then((success: any) => {
@@ -64,13 +45,7 @@ export class MealService {
     }
 
     deleteMeal(req: CustomRequest, res: Response, next: NextFunction) {
-        Joi.validate(req, validation.getOrDeleteMeal, (error: any, value: any) => {
-            if (error) {
-                const friendlyMessages = error.details.map((detail: any) => detail.message);
-                return Promise.reject(new ValidationError(error.name, friendlyMessages, error))
-            }
-            return Promise.resolve(value);
-        }).then((success: any) => {
+        Joi.validate(req, validation.getOrDeleteMeal, HelperService.validationHandler).then((success: any) => {
             const details = {'_id' : new ObjectID(req.params.mealId)};
             return this.mealsCollection.findOneAndDelete(details)
         }).then((doc: any) => {
@@ -82,13 +57,7 @@ export class MealService {
     }
 
     updateMeal(req: CustomRequest, res: Response, next: NextFunction) {
-        Joi.validate(req, validation.updateMeal, (error: any, value: any) => {
-            if (error) {
-                const friendlyMessages = error.details.map((detail: any) => detail.message);
-                return Promise.reject(new ValidationError(error.name, friendlyMessages, error))
-            }
-            return Promise.resolve(value);
-        }).then((success: any) => {
+        Joi.validate(req, validation.updateMeal, HelperService.validationHandler).then((success: any) => {
             const meal = new Meal(req.body.name, new ObjectID(req.headers['tenant-id']));
             const details = {'_id': new ObjectID(req.params.mealId)};
             return this.mealsCollection.findOneAndUpdate(details, meal, {returnOriginal: false})
