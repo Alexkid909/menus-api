@@ -3,7 +3,7 @@ import {ObjectID} from "bson";
 import {Artefact} from "./artefact";
 
 export class Meal extends Artefact {
-    constructor(name: string, tenantId: ObjectID , foods?: Array<Food>) {
+    constructor(name: string, tenantId: string , foods?: Array<Food>) {
         super(tenantId);
         this.name = name;
         this.foods = foods;

@@ -1,11 +1,11 @@
 import {ObjectID} from "bson";
 
 export class Artefact {
-    tenantId: ObjectID;
+    tenantId?: ObjectID;
     private _id?: ObjectID;
 
-    constructor(tenantId: ObjectID) {
-        this.tenantId = tenantId;
+    constructor(tenantId: string) {
+        if(tenantId) this.tenantId = new ObjectID(tenantId);
     }
 
     get id () { return this._id }

@@ -31,13 +31,12 @@ export class CustomerErrorHandler {
     }
 
     private handleDatabaseError(error: DatabaseError, res: Response) {
-        if (error.data.hasOwnProperty('name')) {
-            if(error.data.name === 'BulkWriteError') {
+        switch(error.data.name) {
+            case 'BulkWriteError':
                 const toCapitalizedWords = (name: string) => {
                     const words = name.match(/[A-Za-z][a-z]*/g) || [];
                     return words.map((word: string, index: number ) => (index) ? word.toLowerCase() : `${word.charAt(0).toUpperCase()}${word.substring(1)}`).join(" ");
                 };
-
                 const parsedError = mongoParse(error);
                 const field = toCapitalizedWords(parsedError.index);
                 if(parsedError.code === 11000) {
@@ -45,17 +44,18 @@ export class CustomerErrorHandler {
                     console.log(errorMessage);
                     res.status(400).send(new ApiSuccessBody('fail', [errorMessage]));
                 } else {
-                    res.status(500).send(new ApiErrorBody());
+                    this.handleOtherError(error, res);
                 }
-            }
-        } else {
-            console.log('Default Error', error);
-            this.handleOtherError(error, res);
+                break;
+            case 'InvalidTenantError':
+                res.status(422).send(new ApiSuccessBody('fail', error.friendlyMessages, {tenantId: error.data.tenantId}));
+                break;
+            default:
+                this.handleOtherError(error, res);
         }
     }
 
     private handleValidationError = (error: ValidationError, res: Response) => {
-        // const errorMessages = error.details.map((detail: any) => detail.message.replace(/\\|\"/g,""));
         if(error.data.details.some((data: any) => data.path.includes('params'))) {
             res.status(422).send(new ApiSuccessBody('fail', error.friendlyMessages));
         } else {

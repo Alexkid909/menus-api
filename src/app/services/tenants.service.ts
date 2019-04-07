@@ -16,6 +16,10 @@ export class TenantsService {
         this.tenantsCollection = db.collection('tenants');
     }
 
+    findTenant(tenantId: string) {
+        return this.tenantsCollection.findOne({'_id' : new ObjectID(tenantId)});
+    }
+
     getTenants(req: CustomRequest, res: Response, next: NextFunction) {
         this.tenantsCollection.find({}).toArray((err: any, result: any) => {
             (err) ? res.status(500).send(new ApiErrorBody()) : res.send(result);
@@ -24,12 +28,10 @@ export class TenantsService {
 
     getTenant(req: CustomRequest, res: Response, next: NextFunction) {
         const reqData = { params: req.params };
-
         Joi.validate(reqData, validation.getOrDeleteTenant, (error: any, value: any) =>         {
             return (error) ? Promise.reject(error) : Promise.resolve(value);
-        }).then((success: any) => {
-            const details = {'_id' : new ObjectID(req.params.tenantId)};
-            return this.tenantsCollection.findOne(details);
+        }).then(() => {
+            return this.findTenant(req.params.tenantId);
         }, (error: any) => {
             const errorMessages = error.details.map((detail: any)  => detail.message);
             res.status(422).send(new ApiErrorBody(errorMessages));
@@ -61,7 +63,7 @@ export class TenantsService {
 
         Joi.validate(reqData, validation.updateTenant, (error: any, value: any) => {
             return (error) ? Promise.reject(error) : Promise.resolve(value);
-        }).then((success: any) => {
+        }).then(() => {
             const details = {'_id' : new ObjectID(req.params.tenantId)};
             return this.tenantsCollection.findOneAndDelete(details)
         }, (error: any) => {
@@ -85,7 +87,7 @@ export class TenantsService {
 
         Joi.validate(reqData, validation.updateTenant, (error: any, value: any) => {
            return (error) ? Promise.reject(error) : Promise.resolve(value);
-        }).then((success: any) => {
+        }).then(() => {
             const tenant = new Tenant(req.body.name);
             const details = {'_id': new ObjectID(req.params.tenantId)};
             return this.tenantsCollection.findOneAndUpdate(details, tenant, {returnOriginal: false})

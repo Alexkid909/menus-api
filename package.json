@@ -6,7 +6,7 @@
   "scripts": {
     "test": "jasmine-ts ./src/unit_tests/*.spec.ts",
     "build": "webpack --config webpack.config.js",
-    "serve": "nodemon ./dist/server.js"
+    "serve": "nodemon --inspect ./dist/server.js"
   },
   "author": "",
   "license": "ISC",
