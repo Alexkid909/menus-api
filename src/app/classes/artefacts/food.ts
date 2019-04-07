@@ -10,4 +10,8 @@ export class Food extends Artefact {
         this.name = name;
         this.measurement = measurement;
     }
+
+    get id() {
+        return this._id;
+    }
 }

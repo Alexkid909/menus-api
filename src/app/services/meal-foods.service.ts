@@ -60,8 +60,8 @@ export class MealFoodsService {
             res.status(400).send(new ApiErrorBody(errorMessages));
         }).then((success: any) => {
             const responseData = mealFoodsLinks.map((mealFood: MealFoodLink) => {
-                const food = success.find((food: Food) => food.id.equals(mealFood.foodId));
-                if (food) {return new MealFood(food.name, mealFood._id, food.measurement, mealFood.qty);}
+                const food = success.find((food: Food) => food._id.toHexString() === mealFood.foodId.toHexString());
+                if (food) { return new MealFood(food.name, mealFood._id, food.measurement, mealFood.qty);}
             });
             res.send(new ApiSuccessBody('success', [`Got meal foods for meal ${req.params.mealId}`], responseData));
         }, (error: any) => {
