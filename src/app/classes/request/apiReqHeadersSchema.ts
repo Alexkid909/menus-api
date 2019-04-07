@@ -12,7 +12,6 @@ export class ApiReqHeadersSchema {
     'cache-control': JoiObject;
     'postman-token': JoiObject;
     'host': JoiObject;
-    'tenant-id': JoiObject;
     constructor() {
         this['accept'] = Joi.string().required().insensitive().valid('application/json'),
         this['accept-encoding'] = Joi.string().insensitive(),
@@ -22,7 +21,6 @@ export class ApiReqHeadersSchema {
         this['connection'] = Joi.string().insensitive(),
         this['cache-control'] = Joi.string().insensitive(),
         this['postman-token'] = Joi.string().insensitive(),
-        this['host'] = Joi.string().insensitive().required(),
-        this['tenant-id'] = Joi.string().regex(/^[0-9a-fA-F]{24}$/).required()
+        this['host'] = Joi.string().insensitive().required()
     }
 }

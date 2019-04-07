@@ -61,7 +61,7 @@ export class TenantsService {
             params: req.params
         };
 
-        Joi.validate(reqData, validation.updateTenant, (error: any, value: any) => {
+        Joi.validate(reqData, validation.getOrDeleteTenant, (error: any, value: any) => {
             return (error) ? Promise.reject(error) : Promise.resolve(value);
         }).then(() => {
             const details = {'_id' : new ObjectID(req.params.tenantId)};
