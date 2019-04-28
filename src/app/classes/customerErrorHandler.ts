@@ -1,6 +1,5 @@
 import {Response} from "express";
-import {ApiSuccessBody} from "./response/apiSuccessBody";
-import {ApiErrorBody} from "./response/apiErrorBody";
+import { ApiSuccessBody } from "./response/apiSuccessBody";
 import { ValidationError } from "./internalErrors/validationError";
 import { AuthenticationError } from "./internalErrors/authError";
 import { DatabaseError } from "./internalErrors/databaseError";

@@ -21,6 +21,10 @@ app.set('port', process.env.PORT || port);
 
 app.use(requestIp.mw());
 
+//Cross Origin Middleware.
+
+app.use(cors());
+
 //Auth token verification middleware'
 
 app.use(AuthService.verifyAuthentication);
@@ -29,9 +33,6 @@ app.use(AuthService.verifyAuthentication);
 
 app.use(bodyParser.json());
 
-//Cross Origin Middleware.
-
-app.use(cors());
 
 MongoClient.connect(db.url, (err: any, database: any) => {
     (err) && console.log(err);

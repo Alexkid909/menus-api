@@ -5,19 +5,23 @@ import { User } from "../classes/user";
 import { validation } from "../routes/validation/users";
 import { ApiSuccessBody } from "../classes/response/apiSuccessBody";
 import { JwtService } from "./jwt.service";
+import {HelperService} from "./helpers.service";
+import {AuthenticationError} from "../classes/internalErrors/authError";
+import {AuthService} from "./auth.service";
 
 const bcrypt = require('bcrypt');
 
 const Joi = require("joi");
-const jwtService = new JwtService();
 
 
 export class UsersService {
     usersCollection: Collection;
+    authService: AuthService;
 
     constructor(db: any) {
         this.usersCollection = db.collection('users');
         this.usersCollection.createIndex({ 'email': 1, 'username': 1 },{ unique: true, sparse: true });
+        this.authService = new AuthService(db);
     }
 
     // getUsers(req: CustomRequest, res: Response, next: NextFunction) {
@@ -58,17 +62,47 @@ export class UsersService {
             return this.usersCollection.insert(user);
         }).then((success: any) => {
             const user = success.ops[0];
-            const payload = {
-                iss: req.clientIp,
-                sub: user.username
-            };
-            const token = jwtService.encode(payload, 'quiet');
-            console.log('payload', payload);
+            const token = this.authService.generateToken(req.clientIp, user.username);
             res.status(201).send(new ApiSuccessBody('success', [`User created`], {username: user.username, token}));
         }).catch(next);
     }
 
-    //
+    authenticateUser(req: any, res: Response, next: NextFunction) {
+        const identityKey = `${req.body.username}-${req.clientIp}`;
+        Joi.validate(req, validation.authenticateUser, HelperService.validationHandler)
+            .then((success: any) => {
+                return this.authService.canAuthenticate(identityKey).then((success) => {
+                    console.log('cam auth', success);
+                    return success ?
+                        Promise.resolve('passed') :
+                        Promise.reject(  new AuthenticationError('Account locked', ['Sorry this account is temporarily locked, please try again later']));
+                });
+            }).then((success: any) => {
+            console.log('can authenticate', success);
+            const details = req.body.username ? {'username': req.body.username} : {'email': req.body.email};
+            return this.usersCollection.findOne(details);
+        }).then((success: any) => {
+            if (success) {
+                return bcrypt.compare(req.body.password, success.hashedPassword);
+            } else {
+                this.authService.failedLoginAttempt(identityKey, next);
+                return Promise.reject( new AuthenticationError('No such user', ['Invalid username or password']));
+            }
+        }).then((success: any) => {
+            if (success) {
+                return Promise.resolve('You are now signed in');
+            } else {
+                this.authService.failedLoginAttempt(identityKey, next);
+                return Promise.reject(new AuthenticationError('Hash check failed', ['Invalid username or password']));
+            }
+        }).then((success: string) => {
+            this.authService.successfulLoginAttempt(identityKey, next);
+            const token = this.authService.generateToken(req.clientIp, req.body.username);
+            res.status(200).send(new ApiSuccessBody('success', [success], {username: req.username, token}));
+        }).catch(next);
+    }
+
+
     // deleteUser(req: CustomRequest, res: Response, next: NextFunction) {
     //
     //     Joi.validate(req, validation.updateUser, (error: any, value: any) => {

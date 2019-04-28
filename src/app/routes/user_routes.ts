@@ -1,4 +1,4 @@
-import {Application, NextFunction, Request, Response} from "express";
+import {Application, NextFunction, Response} from "express";
 import { UsersService } from "../services/users.service";
 import {ApiErrorBody} from "../classes/response/apiErrorBody";
 import { CustomRequest } from "../classes/request/customRequest";
@@ -6,7 +6,7 @@ import { CustomRequest } from "../classes/request/customRequest";
 module.exports = (app: Application, db: any) => {
     const userService = new UsersService(db);
 
-    app.post('/users', (req: CustomRequest, res: Response, next: NextFunction) => {
+    app.post('/users/register', (req: CustomRequest, res: Response, next: NextFunction) => {
         userService.createUser(req, res, next);
     });
 
@@ -29,5 +29,9 @@ module.exports = (app: Application, db: any) => {
     app.delete('/users/:userId', (req: CustomRequest, res: Response, next: NextFunction) => {
         res.status(501).send(new ApiErrorBody(['Route not implemented']));
         // userService.deleteUser(req, res, next);
+    });
+
+    app.post('/users/authenticate', (req: CustomRequest, res: Response, next: NextFunction) => {
+        userService.authenticateUser(req, res, next);
     });
 };

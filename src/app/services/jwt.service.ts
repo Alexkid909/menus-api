@@ -1,6 +1,5 @@
 const crypto = require('crypto');
 
-
 export class JwtService {
 
     private base64encode(string: string) {
@@ -24,8 +23,8 @@ export class JwtService {
         const algorithm = 'HS256';
 
         const header = {
-          type: 'JWT',
-          alg: algorithm
+            type: 'JWT',
+            alg: algorithm
         };
 
         let jwt = `${this.base64encode(JSON.stringify(header))}.${this.base64encode(JSON.stringify(payload))}`;
