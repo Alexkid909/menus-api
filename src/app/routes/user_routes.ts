@@ -2,12 +2,13 @@ import {Application, NextFunction, Response} from "express";
 import { UsersService } from "../services/users.service";
 import {ApiErrorBody} from "../classes/response/apiErrorBody";
 import { CustomRequest } from "../classes/request/customRequest";
+import { UsersHandlers } from "./handlers/users";
 
 module.exports = (app: Application, db: any) => {
-    const userService = new UsersService(db);
+    const usersHandlers = new UsersHandlers(db);
 
     app.post('/users/register', (req: CustomRequest, res: Response, next: NextFunction) => {
-        userService.createUser(req, res, next);
+        usersHandlers.createUserHandler(req, res, next);
     });
 
     app.get('/users/:id', (req: CustomRequest, res: Response, next: NextFunction) => {
@@ -32,6 +33,12 @@ module.exports = (app: Application, db: any) => {
     });
 
     app.post('/users/authenticate', (req: CustomRequest, res: Response, next: NextFunction) => {
-        userService.authenticateUser(req, res, next);
+        usersHandlers.authenticateUserHandler(req, res, next);
     });
+
+    app.get('/users/:userId/tenants', (req: CustomRequest, res: Response, next: NextFunction) => {
+        // res.status(501).send(new ApiErrorBody(['Route not implemented']));
+        usersHandlers.getUserTenantsHandler(req, res, next);
+    });
+
 };

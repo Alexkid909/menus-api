@@ -6,23 +6,23 @@ module.exports = (app: Application, db: any) => {
     const tenantService = new TenantsService(db);
 
     app.post('/tenants', (req: CustomRequest, res: Response, next: NextFunction) => {
-        tenantService.createTenant(req, res, next);
+        tenantService.createTenantHandler(req, res, next);
     });
 
     app.get('/tenants/:tenantId', (req: CustomRequest, res: Response, next: NextFunction) => {
-        tenantService.getTenant(req, res, next);
+        tenantService.getTenantHandler(req, res, next);
     });
 
     app.get('/tenants', (req: CustomRequest, res: Response, next: NextFunction) => {
-        tenantService.getTenants(req, res, next);
+        tenantService.getTenantsHandler(req, res, next);
     });
 
 
     app.put('/tenants/:tenantId', (req: CustomRequest, res: Response, next: NextFunction) => {
-        tenantService.updateTenant(req, res, next);
+        tenantService.updateTenantHandler(req, res, next);
     });
 
     app.delete('/tenants/:tenantId', (req: CustomRequest, res: Response, next: NextFunction) => {
-        tenantService.deleteTenant(req, res, next);
+        tenantService.deleteTenantHandler(req, res, next);
     });
 };

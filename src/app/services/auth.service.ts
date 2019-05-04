@@ -22,12 +22,9 @@ export class AuthService {
                 let underTimeout = false;
                 if (login.hasOwnProperty('timeoutExpiry')) {
                     const timeoutExpiry = moment(login.timeoutExpiry).add(5, 'minutes').toDate();
-                    console.log('timeoutExpiry', timeoutExpiry);
-                    console.log('time to expiry', moment(new Date()).toDate() - timeoutExpiry);
                     underTimeout = (moment(new Date()).toDate() - timeoutExpiry) < 0;
                 }
 
-                console.log('underTimeout', underTimeout);
 
                 if(login.failedAttempts < 5 && !underTimeout) {
                     return true;
@@ -51,7 +48,6 @@ export class AuthService {
         const options = {setDefaultsOnInsert: true, upsert: true, returnOriginal: false};
         this.loginsCollection.findOneAndUpdate(query, update, options).then((success: any) => {
             if(success.value.failedAttempts > 4) {
-                console.log();
                 const update = {
                     $set: {
                         failedAttempts: 0,
@@ -60,8 +56,6 @@ export class AuthService {
                 };
                 this.loginsCollection.findOneAndUpdate(query, update, options)
             }
-        }, (error: any) => {
-            console.log('error', error);
         }).catch(next)
     }
 
@@ -96,7 +90,6 @@ export class AuthService {
                 token = req.headers.authorization.split(' ')[1];
                 payload = jwtService.decode(token, 'quiet');
                 if(!payload.sub || !payload.iss || req.clientIp !== payload.iss || !payload.exp) {
-                    console.log(payload, req.clientIp);
                     res.status(401).send(new ApiSuccessBody('failure', ['Authentication failure']))
                 } else if (checkForExpiredToken(payload.exp)) {
                     res.status(401).send(new ApiSuccessBody('failure', ['Token expired']))
@@ -108,12 +101,12 @@ export class AuthService {
         }
     }
 
-    generateToken(clientIp: string, username: string) {
+    generateToken(clientIp: string, userId: string) {
         const jwtService = new JwtService();
 
         const payload = {
             iss: clientIp,
-            sub: username,
+            sub: userId,
             exp: moment(new Date()).add(1, 'days').toString()
         };
 

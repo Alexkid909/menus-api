@@ -1,10 +1,10 @@
-import {ApiTenantReqHeadersSchema} from "../../classes/request/apiTenantReqHeadersSchema";
-import { ApiTenantReqWithPayloadHeadersSchema } from "../../classes/request/apiTenantReqWithPayloadHeadersSchema";
-import {JoiObject} from "joi";
+import { ApiReqHeadersSchema } from "../../classes/request/apiReqHeadersSchema";
+import { ApiReqWithPayloadHeadersSchema } from "../../classes/request/apiReqWithPayloadHeadersSchema";
+import { JoiObject } from "joi";
 
 const Joi = require("joi");
 
-class Body {
+class CreateBody  {
     foodId: JoiObject;
     qty: JoiObject;
     constructor() {
@@ -15,35 +15,33 @@ class Body {
 
 const schemas = {
     createMealFoods: Joi.object().keys({
-        headers: Joi.object().keys(new ApiTenantReqWithPayloadHeadersSchema()).unknown(true),
+        headers: Joi.object().keys(new ApiReqWithPayloadHeadersSchema()).unknown(true),
         params: Joi.object().keys({
             mealId: Joi.string().required().trim()
         }),
-        body: Joi.object().keys(new Body()).unknown(true)
+        body: new CreateBody()
     }).unknown(true),
     getMealsFoods: Joi.object().keys({
-        headers: Joi.object().keys(new ApiTenantReqHeadersSchema()).unknown(true),
+        headers: Joi.object().keys(new ApiReqHeadersSchema()).unknown(true),
     }).unknown(true),
     getMealFoods: Joi.object().keys({
-        headers: Joi.object().keys(new ApiTenantReqHeadersSchema()).unknown(true),
+        headers: Joi.object().keys(new ApiReqHeadersSchema()).unknown(true),
         params: {
             mealId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required()
         }
     }).unknown(true),
     deleteMealFoods: Joi.object().keys({
-        headers: Joi.object().keys(new ApiTenantReqHeadersSchema()).unknown(true),
+        headers: Joi.object().keys(new ApiReqHeadersSchema()).unknown(true),
         params: {
             mealFoodId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required()
         }
     }).unknown(true),
     updateMealFoods: Joi.object().keys({
-        headers: Joi.object().keys(new ApiTenantReqWithPayloadHeadersSchema()).unknown(true),
+        headers: Joi.object().keys(new ApiReqWithPayloadHeadersSchema()).unknown(true),
         params: {
             mealFoodId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required()
         },
         body: {
-            foodId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
-            mealId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
             qty: Joi.number().required().min(1)
         }
     }).unknown(true)

@@ -19,7 +19,6 @@ export class JwtService {
     }
 
     encode(payload: any, secret: string) {
-        console.log('payload', payload);
         const algorithm = 'HS256';
 
         const header = {

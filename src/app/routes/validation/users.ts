@@ -5,9 +5,13 @@ const Joi = require("joi");
 const passwordRegex = new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,})");
 
 
+const reqHeaders = new ApiReqHeadersSchema(false, false);
+const reqWithPayloadHeaders = new ApiReqWithPayloadHeadersSchema(false, false);
+
+
 const schemas = {
     createUser: Joi.object().keys({
-        headers: Joi.object().keys(new ApiReqWithPayloadHeadersSchema()).unknown(true),
+        headers: Joi.object().keys(reqWithPayloadHeaders).unknown(true),
         body : {
             firstName:Joi.string().required().min(1),
             lastName: Joi.string().required().min(1),
@@ -18,7 +22,7 @@ const schemas = {
         }
     }).unknown(true),
     authenticateUser: Joi.object().keys({
-        headers: Joi.object().keys(new ApiReqWithPayloadHeadersSchema()).unknown(true),
+        headers: Joi.object().keys(reqWithPayloadHeaders).unknown(true),
         body : Joi.object().keys({
             email: Joi.string().min(1).email(),
             username: Joi.string().min(1),
@@ -26,18 +30,24 @@ const schemas = {
         }).or('email', 'username')
     }).unknown(true),
     getOrDeleteUser: Joi.object().keys({
-        headers: Joi.object().keys(new ApiReqHeadersSchema()).unknown(true),
+        headers: Joi.object().keys(reqHeaders).unknown(true),
         params: {
             userId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required()
         }
     }).unknown(true),
+    getOrDeleteUserTenant: Joi.object().keys({
+        headers: Joi.object().keys(reqHeaders).unknown(true),
+        params: {
+            userId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
+            tenantId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required()
+        }
+    }).unknown(true),
     updateUser: Joi.object().keys({
-        headers: Joi.object().keys(new ApiReqWithPayloadHeadersSchema()).unknown(true),
+        headers: Joi.object().keys(reqWithPayloadHeaders).unknown(true),
         params: {
             userId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required()
         },
         body: {
-
             firstName:Joi.string().min(1),
             lastName: Joi.string().min(1),
             email: Joi.string().email().min(1),

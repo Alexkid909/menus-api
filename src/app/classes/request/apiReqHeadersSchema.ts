@@ -12,15 +12,23 @@ export class ApiReqHeadersSchema {
     'cache-control': JoiObject;
     'postman-token': JoiObject;
     'host': JoiObject;
-    constructor() {
-        this['accept'] = Joi.string().required().insensitive().valid('application/json'),
-        this['accept-encoding'] = Joi.string().insensitive(),
-        this['accept-language'] = Joi.string().insensitive(),
-        this['user-agent'] = Joi.string().insensitive(),
-        this['referer'] = Joi.string().insensitive(),
-        this['connection'] = Joi.string().insensitive(),
-        this['cache-control'] = Joi.string().insensitive(),
-        this['postman-token'] = Joi.string().insensitive(),
-        this['host'] = Joi.string().insensitive().required()
+    'user-id'?: JoiObject;
+    'tenant-id'?: JoiObject;
+    constructor(tenantSpecific: boolean = true, authenticated: boolean = true) {
+        this['accept'] = Joi.string().required().insensitive().valid('application/json');
+        this['accept-encoding'] = Joi.string().insensitive();
+        this['accept-language'] = Joi.string().insensitive();
+        this['user-agent'] = Joi.string().insensitive();
+        this['referer'] = Joi.string().insensitive();
+        this['connection'] = Joi.string().insensitive();
+        this['cache-control'] = Joi.string().insensitive();
+        this['postman-token'] = Joi.string().insensitive();
+        this['host'] = Joi.string().insensitive().required();
+        if(authenticated) {
+            this['user-id'] = Joi.string().regex(/^[0-9a-fA-F]{24}$/).required();
+        }
+        if(tenantSpecific) {
+            this['tenant-id'] = Joi.string().regex(/^[0-9a-fA-F]{24}$/).required();
+        }
     }
 }

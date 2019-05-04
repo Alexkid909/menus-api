@@ -67,7 +67,6 @@ export class MealFoodsService {
             const details = {'_id' : new ObjectID(req.params.mealFoodId)};
             return this.mealFoodsCollection.findOneAndDelete(details, {projection: '_id'})
         }).then((success: any) => {
-            console.log(success);
             res.send(new ApiSuccessBody('success', [`MealFoodLink ${success.value._id} deleted`]));
         }).catch(next);
     };
@@ -80,7 +79,6 @@ export class MealFoodsService {
             const mealFood = new MealFoodLink(new ObjectID(req.params.mealId), new ObjectID(req.body.foodId), req.body.qty);
             return this.mealFoodsCollection.insert(mealFood)
         }).then((success: any) => {
-            console.log('success', success);
             res.status(201).send(new ApiSuccessBody('success', success.ops[0]));
         }).catch(next);
     }
@@ -94,7 +92,6 @@ export class MealFoodsService {
             const details = {'_id': new ObjectID(req.params.mealFoodId)};
             return this.mealFoodsCollection.findOneAndUpdate(details, mealFoodLink)
         }).then((success: any) => {
-            console.log('success 1', success);
             res.status(201).send(new ApiSuccessBody('success', [`MealFood ${success.value._id} updated`], success.value));
         }).catch(next);
     }
