@@ -6,22 +6,22 @@ module.exports = (app: Application, db: any) => {
     const mealFoodsService = new MealFoodsService(db);
 
     app.post('/meals/:mealId/foods', (req: CustomRequest, res: Response, next: NextFunction) => {
-        mealFoodsService.createMealFood(req, res, next);
+        mealFoodsService.addMealToFoodHandler(req, res, next);
     });
 
     app.get('/meals/:mealId/foods', (req: CustomRequest, res: Response, next: NextFunction) => {
-        mealFoodsService.getMealFoods(req, res, next);
+        mealFoodsService.getMealFoodsHandler(req, res, next);
     });
 
     app.get('/meal-foods', (req: CustomRequest, res: Response, next: NextFunction) => {
-        mealFoodsService.getMealsFoods(req, res, next);
+        mealFoodsService.getMealsFoodsHandler(req, res, next);
     });
 
     app.delete('/meal-foods/:mealFoodId', (req: CustomRequest, res: Response, next: NextFunction) => {
-        mealFoodsService.deleteMealFood(req, res, next);
+        mealFoodsService.deleteMealFoodHandler(req, res, next);
     });
 
     app.put('/meal-foods/:mealFoodId', (req: CustomRequest, res: Response, next: NextFunction) => {
-        mealFoodsService.updateMealFood(req, res, next);
+        mealFoodsService.updateMealFoodHandler(req, res, next);
     });
 };

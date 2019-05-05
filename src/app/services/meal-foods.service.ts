@@ -6,8 +6,9 @@ import {MealFood} from "../classes/artefacts/mealFood";
 import { NextFunction, Response } from "express";
 import { CustomRequest } from "../classes/request/customRequest";
 import { validation } from "../routes/validation/meal-foods";
-import {ApiErrorBody} from "../classes/response/apiErrorBody";
 import {ApiSuccessBody} from "../classes/response/apiSuccessBody";
+import {TenantUsersService} from "./tenant-users.service";
+import {HelperService} from "./helpers.service";
 
 
 const Joi = require('joi');
@@ -16,17 +17,18 @@ const Joi = require('joi');
 export class MealFoodsService {
     mealFoodsCollection: Collection;
     foodsCollection: Collection;
+    tenantUsersService: TenantUsersService;
 
     constructor(db: any) {
         this.foodsCollection = db.collection('foods');
         this.mealFoodsCollection = db.collection('mealFoods');
+        this.tenantUsersService = new TenantUsersService(db);
     }
 
 
-    getMealsFoods(req: CustomRequest, res: Response, next: NextFunction) {
-
-        Joi.validate(req, validation.getMealsFoods, (error: any, value: any) => {
-            return (error) ? Promise.reject(error) : Promise.resolve(value);
+    getMealsFoodsHandler(req: CustomRequest, res: Response, next: NextFunction) {
+        Joi.validate(req, validation.getMealsFoods, HelperService.validationHandler).then(() => {
+            return this.tenantUsersService.hasTenantAccess(req);
         }).then((success: any) => {
             return this.mealFoodsCollection.find({}).toArray();
         }).then((success: any) => {
@@ -34,11 +36,11 @@ export class MealFoodsService {
         }).catch(next);
     }
 
-    getMealFoods(req: CustomRequest, res: Response, next: NextFunction) {
+    getMealFoodsHandler(req: CustomRequest, res: Response, next: NextFunction) {
         let mealFoodsLinks: Array<MealFoodLink>;
 
-        Joi.validate(req, validation.getMealFoods, (error: any, value: any) => {
-            return (error) ? Promise.reject(error) : Promise.resolve(value);
+        Joi.validate(req, validation.getMealFoods, HelperService.validationHandler).then(() => {
+            return this.tenantUsersService.hasTenantAccess(req);
         }).then((success: any) => {
             const mealFoodsQuery = {'mealId' : new ObjectID(req.params.mealId)};
             const mealFoodsProjection = { 'mealId': false };
@@ -59,10 +61,10 @@ export class MealFoodsService {
 
     };
 
-    deleteMealFood(req: CustomRequest, res: Response, next: NextFunction) {
+    deleteMealFoodHandler(req: CustomRequest, res: Response, next: NextFunction) {
 
-        Joi.validate(req, validation.deleteMealFoods, (error: any, value: any) => {
-            return (error) ? Promise.reject(error) : Promise.resolve(value);
+        Joi.validate(req, validation.deleteMealFoods, HelperService.validationHandler).then(() => {
+            return this.tenantUsersService.hasTenantAccess(req);
         }).then((success: any) => {
             const details = {'_id' : new ObjectID(req.params.mealFoodId)};
             return this.mealFoodsCollection.findOneAndDelete(details, {projection: '_id'})
@@ -71,10 +73,10 @@ export class MealFoodsService {
         }).catch(next);
     };
 
-    createMealFood(req: CustomRequest, res: Response, next: NextFunction) {
+    addMealToFoodHandler(req: CustomRequest, res: Response, next: NextFunction) {
 
-        Joi.validate(req, validation.createMealFoods, (error: any, value: any) => {
-            return (error) ? Promise.reject(error) : Promise.resolve(value);
+        Joi.validate(req, validation.createMealFoods, HelperService.validationHandler).then(() => {
+            return this.tenantUsersService.hasTenantAccess(req);
         }).then((success: any) => {
             const mealFood = new MealFoodLink(new ObjectID(req.params.mealId), new ObjectID(req.body.foodId), req.body.qty);
             return this.mealFoodsCollection.insert(mealFood)
@@ -83,10 +85,10 @@ export class MealFoodsService {
         }).catch(next);
     }
 
-    updateMealFood(req: CustomRequest, res: Response, next: NextFunction) {
+    updateMealFoodHandler(req: CustomRequest, res: Response, next: NextFunction) {
 
-        Joi.validate(req, validation.updateMealFoods, (error: any, value: any) => {
-            return (error) ? Promise.reject(error) : Promise.resolve(value);
+        Joi.validate(req, validation.updateMealFoods, HelperService.validationHandler).then(() => {
+            return this.tenantUsersService.hasTenantAccess(req);
         }).then((success: any) => {
             const mealFoodLink = new MealFoodLink(new ObjectID(req.body.mealId), new ObjectID(req.body.foodId), req.body.qty);
             const details = {'_id': new ObjectID(req.params.mealFoodId)};
