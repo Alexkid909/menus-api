@@ -29,7 +29,7 @@ export class MealService {
 
     getMealsHandler(req: CustomRequest, res: Response, next: NextFunction) {
         Joi.validate(req, validation.getMeals, HelperService.validationHandler).then(() => {
-            return this.tenantUsersService.userHasTenantAccess(req.headers['user-id'], req.headers['tenant-id'])
+            return this.tenantUsersService.hasTenantAccess(req);
         }).then(() => {
             const query = new DefaultQuery();
             query.setTenantId(req.headers['tenant-id']);
@@ -41,7 +41,7 @@ export class MealService {
 
     getMealHandler(req: CustomRequest, res: Response, next: NextFunction) {
         Joi.validate(req, validation.getOrDeleteMeal, HelperService.validationHandler).then(() => {
-            return this.tenantUsersService.userHasTenantAccess(req.headers['user-id'], req.headers['tenant-id'])
+            return this.tenantUsersService.hasTenantAccess(req);
         }).then(() => {
             const query = new DefaultQuery(req.params.mealId, req.headers['tenant-id']);
             return this.mealsCollection.findOne(query);
@@ -52,7 +52,7 @@ export class MealService {
 
     createMealHandler(req: CustomRequest, res: Response, next: NextFunction) {
         Joi.validate(req, validation.createMeal, HelperService.validationHandler).then(() => {
-            return this.tenantUsersService.userHasTenantAccess(req.headers['user-id'], req.headers['tenant-id'])
+            return this.tenantUsersService.hasTenantAccess(req);
         }).then(() => {
             return this.tenantsService.getTenant(req.headers['tenant-id'])
         }).then((success: any) => {
@@ -70,7 +70,7 @@ export class MealService {
 
     deleteMealHandler(req: CustomRequest, res: Response, next: NextFunction) {
         Joi.validate(req, validation.getOrDeleteMeal, HelperService.validationHandler).then(() => {
-            return this.tenantUsersService.userHasTenantAccess(req.headers['user-id'], req.headers['tenant-id'])
+            return this.tenantUsersService.hasTenantAccess(req);
         }).then(() => {
             const query = new DefaultQuery(req.params.mealId, req.headers['tenant-id']);
             return this.mealsCollection.findOneAndDelete(query)
@@ -83,7 +83,7 @@ export class MealService {
 
     updateMealHandler(req: CustomRequest, res: Response, next: NextFunction) {
         Joi.validate(req, validation.updateMeal, HelperService.validationHandler).then(() => {
-            return this.tenantUsersService.userHasTenantAccess(req.headers['user-id'], req.headers['tenant-id'])
+            return this.tenantUsersService.hasTenantAccess(req);
         }).then((success: any) => {
             const update = new Meal(req.body.name, req.headers['tenant-id']);
             const options = Object.assign(this.defaultQueryOptions, { returnOriginal: false });

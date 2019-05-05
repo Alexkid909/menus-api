@@ -1,20 +1,23 @@
 import { CustomerErrorHandler } from "../app/classes/customerErrorHandler";
 import { AuthService } from "../app/services/auth.service";
+import { Config } from "../config/config";
+import { NextFunction } from "express";
+import { CustomRequest } from "../app/classes/request/customRequest";
 
 const express = require('express');
 const bodyParser = require("body-parser");
-const db = require('../config/db');
 const MongoClient = require("mongodb").MongoClient;
 const cors = require('cors');
+const https = require('https');
+const http = require('http');
+const fs = require('fs');
 
-// require request-ip and register it as middleware
 const requestIp = require('request-ip');
 
-const port = 3001;
 const app = express();
 const customErrorHandler = new CustomerErrorHandler();
 
-app.set('port', process.env.PORT || port);
+const config = new Config('dev');
 
 // IP address middleware.
 
@@ -32,8 +35,16 @@ app.use(AuthService.verifyAuthentication);
 
 app.use(bodyParser.json());
 
+app.use((req: CustomRequest, res: any, next: NextFunction) => {
+    debugger;
+    if(req.secure) {
+        next();
+    } else {
+        res.redirect(301, `https://${req.headers.host.split(':')[0]}:${global.config.httpsPort}${req.url}`);
+    }
+});
 
-MongoClient.connect(db.url, (err: any, database: any) => {
+MongoClient.connect(global.config.dbUrl, (err: any, database: any) => {
     (err) && console.log(err);
     const db = database.db('menu');
 
@@ -43,11 +54,21 @@ MongoClient.connect(db.url, (err: any, database: any) => {
 
     app.use(customErrorHandler.handleErrors);
 
-    app.listen(app.get('port'),() => {
+    const key = fs.readFileSync('src/cert/server.key');
+    const cert = fs.readFileSync('src/cert/server.cert');
+
+    http.createServer(app).listen(global.config.httpPort,() => {
         const date = new Date().toString();
         console.log(date);
         console.log(('App is running at http://localhost:%d in %s mode'),
-            app.get('port'), app.get('env'));
+            global.config.httpPort, app.get('env'));
+    });
+
+    https.createServer({key, cert}, app).listen(global.config.httpsPort,() => {
+        const date = new Date().toString();
+        console.log(date);
+        console.log(('App is running at https://localhost:%d in %s mode'),
+            global.config.httpsPort, app.get('env'));
     })
 });
 

@@ -1,9 +1,11 @@
 {
   "files": [
-    "src/server/server.ts"
+    "src/server/server.ts",
+    "src/types/custom.d.ts"
   ],
   "include": [
-    "server/**/*.ts"
+    "server/**/*.ts",
+    "config/**/*.ts"
   ],
   "compilerOptions": {
     "module": "commonjs",

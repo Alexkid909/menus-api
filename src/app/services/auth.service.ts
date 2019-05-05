@@ -5,12 +5,9 @@ import { JwtService } from "./jwt.service";
 const moment = require('moment');
 
 export class AuthService {
-    usersCollection: Collection;
     loginsCollection: Collection;
 
     constructor(db: any) {
-        this.usersCollection = db.collection('users');
-        this.usersCollection.createIndex({ 'email': 1, 'username': 1 },{ unique: true, sparse: true });
         this.loginsCollection = db.collection('logins');
         this.loginsCollection.createIndex({ 'identityKey': 1},{ unique: true, sparse: true });
     }
@@ -88,7 +85,7 @@ export class AuthService {
                 res.status(401).send(new ApiSuccessBody('failure', ['Invalid auth type']))
             } else {
                 token = req.headers.authorization.split(' ')[1];
-                payload = jwtService.decode(token, 'quiet');
+                payload = jwtService.decode(token, global.config.secret);
                 if(!payload.sub || !payload.iss || req.clientIp !== payload.iss || !payload.exp) {
                     res.status(401).send(new ApiSuccessBody('failure', ['Authentication failure']))
                 } else if (checkForExpiredToken(payload.exp)) {
@@ -110,6 +107,7 @@ export class AuthService {
             exp: moment(new Date()).add(1, 'days').toString()
         };
 
-        return jwtService.encode(payload, 'quiet');
+        return jwtService.encode(payload, global.config.secret);
     }
+
 }

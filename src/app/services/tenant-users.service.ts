@@ -1,5 +1,8 @@
 import { Collection, ObjectID } from "mongodb";
-import {DatabaseError} from "../classes/internalErrors/databaseError";
+import { DatabaseError } from "../classes/internalErrors/databaseError";
+import { JwtService } from "./jwt.service";
+import { CustomRequest } from "../classes/request/customRequest";
+
 
 export class TenantUsersService {
     tenantUsersCollection: Collection;
@@ -17,7 +20,11 @@ export class TenantUsersService {
         return this.tenantUsersCollection.find(query).toArray();
     }
 
-    userHasTenantAccess(userId: string, tenantId: string) {
+    hasTenantAccess(req: CustomRequest) {
+        const tenantId = req.headers['tenant-id'];
+        const jwtService = new JwtService();
+        // @ts-ignore
+        const userId = jwtService.decode(req.headers.authorization, global.config.secret).sub;
         const query = { userId: new ObjectID(userId), tenantId: new ObjectID(tenantId) };
         return this.tenantUsersCollection.find(query).toArray().then((success: any) => {
             if(success.length > 0) {
