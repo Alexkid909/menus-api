@@ -5,8 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "jasmine-ts ./src/unit_tests/*.spec.ts",
-    "build": "webpack --config webpack.config.js",
-    "serve": "nodemon --inspect ./dist/server.js"
+    "build:dev": "webpack --config webpack.dev.config.js",
+    "build:prod": "webpack --config webpack.prod.config.js",
+    "serve:dev": "nodemon --inspect ./dist/server.js",
+    "serve:prod": "node ./dist/server.js"
   },
   "author": "",
   "license": "ISC",
@@ -32,6 +34,7 @@
     "bcrypt": "3.0.3",
     "body-parser": "^1.18.3",
     "cors": "^2.8.4",
+    "dotenv": "^8.0.0",
     "express": "^4.16.4",
     "express-ip": "^1.0.3",
     "express-validation": "^1.0.2",

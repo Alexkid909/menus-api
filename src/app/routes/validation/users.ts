@@ -4,10 +4,8 @@ import {ApiReqHeadersSchema} from "../../classes/request/apiReqHeadersSchema";
 const Joi = require("joi");
 const passwordRegex = new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,})");
 
-
-const reqHeaders = new ApiReqHeadersSchema(false, false);
-const reqWithPayloadHeaders = new ApiReqWithPayloadHeadersSchema(false, false);
-
+const reqHeaders = new ApiReqHeadersSchema(false);
+const reqWithPayloadHeaders = new ApiReqWithPayloadHeadersSchema(false);
 
 const schemas = {
     createUser: Joi.object().keys({

@@ -46,10 +46,12 @@ export class CustomerErrorHandler {
             return words.map((word: string, index: number ) => (index) ? word.toLowerCase() : `${word.charAt(0).toUpperCase()}${word.substring(1)}`).join(" ");
         };
         const parsedError = mongoParse(error);
-        const field = toCapitalizedWords(parsedError.index);
+        const errorMessages = parsedError.index.replace(/_1/g,'').split('_').map((field: string) => {
+            const fieldName = toCapitalizedWords(field);
+            return `${fieldName} is already registered`;
+        });
         if(parsedError.code === 11000) {
-            const errorMessage = `${field} is already registered`;
-            res.status(400).send(new ApiSuccessBody('fail', [errorMessage]));
+            res.status(400).send(new ApiSuccessBody('fail', errorMessages));
         } else {
             this.handleOtherError(error, res);
         }

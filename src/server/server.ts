@@ -1,10 +1,11 @@
+const express = require('express');
+
 import { CustomerErrorHandler } from "../app/classes/customerErrorHandler";
 import { AuthService } from "../app/services/auth.service";
 import { Config } from "../config/config";
 import { NextFunction } from "express";
-import { CustomRequest } from "../app/classes/request/customRequest";
 
-const express = require('express');
+import { CustomRequest } from "../app/classes/request/customRequest";
 const bodyParser = require("body-parser");
 const MongoClient = require("mongodb").MongoClient;
 const cors = require('cors');
@@ -17,7 +18,9 @@ const requestIp = require('request-ip');
 const app = express();
 const customErrorHandler = new CustomerErrorHandler();
 
-const config = new Config('dev');
+
+const config = new Config(process.env.NODE_ENV);
+//
 
 // IP address middleware.
 
@@ -36,7 +39,6 @@ app.use(AuthService.verifyAuthentication);
 app.use(bodyParser.json());
 
 app.use((req: CustomRequest, res: any, next: NextFunction) => {
-    debugger;
     if(req.secure) {
         next();
     } else {

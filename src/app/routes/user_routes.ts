@@ -1,6 +1,5 @@
 import {Application, NextFunction, Response} from "express";
-import { UsersService } from "../services/users.service";
-import {ApiErrorBody} from "../classes/response/apiErrorBody";
+import { ApiErrorBody } from "../classes/response/apiErrorBody";
 import { CustomRequest } from "../classes/request/customRequest";
 import { UsersHandlers } from "./handlers/users";
 

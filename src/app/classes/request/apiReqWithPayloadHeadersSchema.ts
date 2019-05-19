@@ -5,8 +5,8 @@ import { ApiReqHeadersSchema } from "./apiReqHeadersSchema";
 
 export class ApiReqWithPayloadHeadersSchema extends ApiReqHeadersSchema{
     'content-type': JoiObject;
-    constructor(tenantSpecific: boolean = true, authenticated: boolean = true) {
-        super(tenantSpecific, authenticated);
+    constructor(tenantSpecific: boolean = true) {
+        super(tenantSpecific);
         this['content-type'] = Joi.string().required().valid('application/json').insensitive()
     }
 }
