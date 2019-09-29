@@ -46,18 +46,18 @@ export class UsersHandlers {
         Joi.validate(req, validation.createUser, HelperService.validationHandler).then(() => {
             return bcrypt.hash(req.body.password, 16.5);
         }).then((hash: any) => {
-            const { firstName, lastName, email, username} = req.body;
-            const user = new User(firstName, lastName, email, hash, username);
+            const { firstName, lastName, email, userName} = req.body;
+            const user = new User(firstName, lastName, email, hash, userName);
             return this.usersService.createUser(user);
         }).then((success: any) => {
             const user = success.ops[0];
             const token = this.authService.generateToken(req.clientIp, user._id.toHexString());
-            res.status(201).send(new ApiSuccessBody('success', [`User created`], {username: user.username, token}));
+            res.status(201).send(new ApiSuccessBody('success', [`User created`], {userName: user.userName, token}));
         }).catch(next);
     }
 
     authenticateUserHandler(req: any, res: Response, next: NextFunction) {
-        const identityKey = `${req.body.username}-${req.clientIp}`;
+        const identityKey = `${req.body.userName}-${req.clientIp}`;
         let userId: string;
         Joi.validate(req, validation.authenticateUser, HelperService.validationHandler)
             .then((success: any) => {
@@ -67,12 +67,12 @@ export class UsersHandlers {
                         Promise.reject(  new AuthenticationError('Account locked', ['Sorry this account is temporarily locked, please try again later']));
                 });
             }).then((success: any) => {
-            return req.body.username ?
-                this.usersService.getUserByName(req.body.username) :
+            return req.body.userName ?
+                this.usersService.getUserByName(req.body.userName) :
                 this.usersService.getUserByEmail(req.body.email);
         }).then((success: any) => {
-            userId = success._id.toString();
             if (success) {
+                userId = success._id.toString();
                 return bcrypt.compare(req.body.password, success.hashedPassword);
             } else {
                 this.authService.failedLoginAttempt(identityKey, next);
@@ -83,12 +83,12 @@ export class UsersHandlers {
                 return Promise.resolve('You are now signed in');
             } else {
                 this.authService.failedLoginAttempt(identityKey, next);
-                return Promise.reject(new AuthenticationError('Hash check failed', ['Invalid username or password']));
+                return Promise.reject(new AuthenticationError('Hash check failed', ['Invalid Username or password']));
             }
         }).then((success: string) => {
             this.authService.successfulLoginAttempt(identityKey, next);
             const token = this.authService.generateToken(req.clientIp, userId);
-            res.status(200).send(new ApiSuccessBody('success', [success], {username: req.body.username, token, userId}));
+            res.status(200).send(new ApiSuccessBody('success', [success], {userName: req.body.userName, token, userId}));
         }).catch(next);
     }
 
@@ -130,7 +130,8 @@ export class UsersHandlers {
 
     getUserTenantsHandler(req: CustomRequest, res: Response, next: NextFunction) {
         Joi.validate(req, validation.getOrDeleteUser, HelperService.validationHandler).then(() => {
-            return this.tenantUsersService.getUserTenants(req.params.userId);
+            const userId = this.usersService.getUserIdFromAuth(req.headers.authorization);
+            return this.tenantUsersService.getUserTenants(userId);
         }).then((success: any) => {
             const tenantIds = success.map((userTenant: TenantUserLink) => userTenant.tenantId);
             return this.tenantsService.getTenants(tenantIds);

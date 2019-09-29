@@ -10,7 +10,7 @@ module.exports = (app: Application, db: any) => {
         usersHandlers.createUserHandler(req, res, next);
     });
 
-    app.get('/users/:id', (req: CustomRequest, res: Response, next: NextFunction) => {
+    app.get('/users', (req: CustomRequest, res: Response, next: NextFunction) => {
         res.status(501).send(new ApiErrorBody(['Route not implemented']));
         // userService.getUser(req, res, next);
     });
@@ -35,7 +35,7 @@ module.exports = (app: Application, db: any) => {
         usersHandlers.authenticateUserHandler(req, res, next);
     });
 
-    app.get('/users/:userId/tenants', (req: CustomRequest, res: Response, next: NextFunction) => {
+    app.get('/user/tenants', (req: CustomRequest, res: Response, next: NextFunction) => {
         // res.status(501).send(new ApiErrorBody(['Route not implemented']));
         usersHandlers.getUserTenantsHandler(req, res, next);
     });

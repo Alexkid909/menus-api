@@ -12,7 +12,6 @@ export class ApiReqHeadersSchema {
     'cache-control': JoiObject;
     'postman-token': JoiObject;
     'host': JoiObject;
-    'user-id'?: JoiObject;
     'tenant-id'?: JoiObject;
     constructor(tenantSpecific: boolean = true) {
         this['accept'] = Joi.string().required().insensitive().valid('application/json');

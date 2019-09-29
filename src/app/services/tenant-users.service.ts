@@ -24,7 +24,7 @@ export class TenantUsersService {
         const tenantId = req.headers['tenant-id'];
         const jwtService = new JwtService();
         // @ts-ignore
-        const userId = jwtService.decode(req.headers.authorization, global.config.secret).sub;
+        const userId = jwtService.decode(req.headers.authorization.replace('Bearer ', ''), global.config.secret).sub;
         const query = { userId: new ObjectID(userId), tenantId: new ObjectID(tenantId) };
         return this.tenantUsersCollection.find(query).toArray().then((success: any) => {
             if(success.length > 0) {
@@ -34,5 +34,4 @@ export class TenantUsersService {
             return Promise.reject(new DatabaseError('No tenant access', ['This user does not have access to this tenant'], errorData));
         });
     }
-
 }

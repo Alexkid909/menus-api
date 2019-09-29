@@ -8,21 +8,22 @@ import {JwtService} from "./jwt.service";
 export class UsersService {
     usersCollection: Collection;
     authService: AuthService;
+    jwtService: JwtService;
 
 
     constructor(db: any) {
         this.usersCollection = db.collection('users');
-        this.usersCollection.createIndex({ 'email': 1, 'username': 1 },{ unique: true, sparse: true });
+        this.usersCollection.createIndex({ 'email': 1, 'userName': 1 },{ unique: true, sparse: true });
         this.authService = new AuthService(db);
-
+        this.jwtService = new JwtService();
     }
 
     getAllUsers() {
         return this.usersCollection.find({}).toArray()
     }
 
-    getUserByName(username: string) {
-        return this.usersCollection.findOne({'username' : username});
+    getUserByName(userName: string) {
+        return this.usersCollection.findOne({'userName' : userName});
     }
 
     getUserByEmail(email: string) {
@@ -35,6 +36,12 @@ export class UsersService {
 
     createUser(user: User) {
         return this.usersCollection.insert(user);
+    }
+
+    getUserIdFromAuth(auth: string) {
+        const token = auth.split(' ')[1];
+        // @ts-ignore
+        return this.jwtService.decode(token, global.config.secret).sub;
     }
 
 }

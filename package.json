@@ -31,6 +31,7 @@
     "webpack-cli": "^3.0.1"
   },
   "dependencies": {
+    "aws-sdk": "^2.490.0",
     "bcrypt": "3.0.3",
     "body-parser": "^1.18.3",
     "cors": "^2.8.4",

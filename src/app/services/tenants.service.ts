@@ -54,11 +54,12 @@ export class TenantsService {
 
     createTenantHandler(req: CustomRequest, res: Response, next: NextFunction) {
         let tenant: Tenant;
+        const userId = this.usersService.getUserIdFromAuth(req.headers.authorization);
         Joi.validate(req , validation.createTenant, HelperService.validationHandler).then((success: any) => {
-            return this.usersService.getUserById(new ObjectID(req.headers['user-id']));
+            return this.usersService.getUserById(new ObjectID(userId));
         }).then((success: any) => {
             if (success) {
-                const tenant = new Tenant(req.body.name, req.headers['user-id']);
+                const tenant = new Tenant(req.body.name, userId);
                 return this.tenantsCollection.insert(tenant);
             } else {
                 const errorData = { name: 'InvalidUserError',  tenantId: req.headers['user-id'] };
@@ -66,7 +67,7 @@ export class TenantsService {
             }
         }).then((success: any) => {
             tenant = success.ops[0];
-            return this.addUserToTenant(req.headers['user-id'], tenant._id.toHexString())
+            return this.addUserToTenant(userId, tenant._id.toHexString())
         }).then((success: any) => {
             res.status(201).send(tenant);
         }).catch(next);

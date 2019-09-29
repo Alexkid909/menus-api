@@ -14,7 +14,7 @@ const schemas = {
             firstName:Joi.string().required().min(1),
             lastName: Joi.string().required().min(1),
             email: Joi.string().required().min(1).email(),
-            username: Joi.string(),
+            userName: Joi.string(),
             password: Joi.string().required().min(8).regex(passwordRegex),
             passwordConfirm: Joi.any().valid(Joi.ref('password')).required().options({ language: { any: { allowOnly: 'must match password' } } })
         }
@@ -23,33 +23,26 @@ const schemas = {
         headers: Joi.object().keys(reqWithPayloadHeaders).unknown(true),
         body : Joi.object().keys({
             email: Joi.string().min(1).email(),
-            username: Joi.string().min(1),
+            userName: Joi.string().min(1),
             password: Joi.string().required().min(8).regex(passwordRegex),
-        }).or('email', 'username')
+        }).or('email', 'userName')
     }).unknown(true),
     getOrDeleteUser: Joi.object().keys({
         headers: Joi.object().keys(reqHeaders).unknown(true),
-        params: {
-            userId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required()
-        }
     }).unknown(true),
     getOrDeleteUserTenant: Joi.object().keys({
         headers: Joi.object().keys(reqHeaders).unknown(true),
         params: {
-            userId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
             tenantId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required()
         }
     }).unknown(true),
     updateUser: Joi.object().keys({
         headers: Joi.object().keys(reqWithPayloadHeaders).unknown(true),
-        params: {
-            userId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required()
-        },
         body: {
             firstName:Joi.string().min(1),
             lastName: Joi.string().min(1),
             email: Joi.string().email().min(1),
-            username: Joi.string().min(1),
+            userName: Joi.string().min(1),
             password: Joi.string().min(8).regex(passwordRegex),
             passwordConfirm: Joi.any().valid(Joi.ref('password')).required().options({ language: { any: { allowOnly: 'must match password' } } })
 
