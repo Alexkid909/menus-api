@@ -6,7 +6,7 @@ module.exports = (app: Application, db: any) => {
     const mealFoodsService = new MealFoodsService(db);
 
     app.post('/meals/:mealId/foods', (req: CustomRequest, res: Response, next: NextFunction) => {
-        mealFoodsService.addMealToFoodHandler(req, res, next);
+        mealFoodsService.addFoodsToMealHandler(req, res, next);
     });
 
     app.get('/meals/:mealId/foods', (req: CustomRequest, res: Response, next: NextFunction) => {

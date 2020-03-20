@@ -1,17 +1,13 @@
-import {ObjectID} from "bson";
 import {Artefact} from "./artefact";
 
 export class Food extends Artefact {
     name: string;
     measurement: string;
 
-    constructor(name: string, measurement: string, tenantId?: string) {
-        super(tenantId);
+    constructor(
+        name: string, measurement: string, tenantId?: string, creatorId?: string, updatorId?: string, imgSrc?: string) {
+        super(tenantId, creatorId, updatorId, imgSrc);
         this.name = name;
         this.measurement = measurement;
-    }
-
-    get id() {
-        return this._id;
     }
 }

@@ -4,7 +4,7 @@ import { JoiObject } from "joi";
 
 const Joi = require("joi");
 
-class CreateBody  {
+class MealFood {
     foodId: JoiObject;
     qty: JoiObject;
     constructor() {
@@ -19,7 +19,7 @@ const schemas = {
         params: Joi.object().keys({
             mealId: Joi.string().required().trim()
         }),
-        body: new CreateBody()
+        body: Joi.array().items(new MealFood())
     }).unknown(true),
     getMealsFoods: Joi.object().keys({
         headers: Joi.object().keys(new ApiReqHeadersSchema()).unknown(true),

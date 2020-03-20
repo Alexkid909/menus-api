@@ -73,15 +73,17 @@ export class MealFoodsService {
         }).catch(next);
     };
 
-    addMealToFoodHandler(req: CustomRequest, res: Response, next: NextFunction) {
+    addFoodsToMealHandler(req: CustomRequest, res: Response, next: NextFunction) {
 
         Joi.validate(req, validation.createMealFoods, HelperService.validationHandler).then(() => {
             return this.tenantUsersService.hasTenantAccess(req);
         }).then((success: any) => {
-            const mealFood = new MealFoodLink(new ObjectID(req.params.mealId), new ObjectID(req.body.foodId), req.body.qty);
-            return this.mealFoodsCollection.insert(mealFood)
+            const mealFoods: Array<MealFoodLink> = req.body.map((mealFood: { foodId: string, qty: number } ) => {
+                return new MealFoodLink(new ObjectID(req.params.mealId), new ObjectID(mealFood.foodId), mealFood.qty);
+            });
+            return this.mealFoodsCollection.insert(mealFoods)
         }).then((success: any) => {
-            res.status(201).send(new ApiSuccessBody('success', success.ops[0]));
+            res.status(201).send(new ApiSuccessBody('success', success.ops));
         }).catch(next);
     }
 

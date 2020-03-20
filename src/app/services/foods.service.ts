@@ -59,7 +59,7 @@ export class FoodsService {
             return this.tenantsService.getTenant(req.headers['tenant-id'])
         }).then((success: any) => {
             if (success) {
-                const food = new Food(req.body.name, req.body.measurement, req.headers['tenant-id']);
+                const food = new Food(req.body.name, req.body.measurement, req.headers['tenant-id'], null, null, req.body.imgSrc);
                 return this.foodsCollection.insertOne(food);
             } else {
                 const errorData = { name: 'InvalidTenantError',  tenantId: req.headers['tenant-id'] };
@@ -90,7 +90,7 @@ export class FoodsService {
         }).then(() => {
             const query = new DefaultQuery(req.params.foodId, req.headers['tenant-id']);
             const options = Object.assign(this.defaultQueryOptions, { returnOriginal: false });
-            const update = new Food(req.body.name, req.body.measurement, req.headers['tenant-id']);
+            const update = new Food(req.body.name, req.body.measurement, req.headers['tenant-id'], null, null, req.body.imgSrc);
             return this.foodsCollection.findOneAndUpdate(query, update, options)
         }).then((success: any) => {
             res.send(new ApiSuccessBody('success', success.value));

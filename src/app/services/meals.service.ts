@@ -57,7 +57,7 @@ export class MealService {
             return this.tenantsService.getTenant(req.headers['tenant-id'])
         }).then((success: any) => {
             if (success) {
-                const meal = new Meal(req.body.name, req.headers['tenant-id']);
+                const meal = new Meal(req.body.name, req.headers['tenant-id'], null, null, req.body.imgSrc);
                 return this.mealsCollection.insert(meal);
             } else {
                 const errorData = { tenantId: req.headers['tenant-id'] };
@@ -85,7 +85,7 @@ export class MealService {
         Joi.validate(req, validation.updateMeal, HelperService.validationHandler).then(() => {
             return this.tenantUsersService.hasTenantAccess(req);
         }).then((success: any) => {
-            const update = new Meal(req.body.name, req.headers['tenant-id']);
+            const update = new Meal(req.body.name, req.headers['tenant-id'], null, null, req.body.imgSrc);
             const options = Object.assign(this.defaultQueryOptions, { returnOriginal: false });
             const query = new DefaultQuery(req.params.mealId, req.headers['tenant-id']);
             return this.mealsCollection.findOneAndUpdate(query, update, {returnOriginal: false})

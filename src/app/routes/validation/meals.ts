@@ -6,8 +6,11 @@ const Joi = require("joi");
 
 class Body {
     name: JoiObject;
+    imgSrc: JoiObject;
+
     constructor() {
         this.name = Joi.string().required().trim();
+        this.imgSrc = Joi.string().required().trim();
     }
 }
 

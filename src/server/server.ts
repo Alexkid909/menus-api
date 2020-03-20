@@ -9,18 +9,17 @@ import { CustomRequest } from "../app/classes/request/customRequest";
 const bodyParser = require("body-parser");
 const MongoClient = require("mongodb").MongoClient;
 const cors = require('cors');
-const https = require('https');
 const http = require('http');
 const fs = require('fs');
-
+const Sentry = require('@sentry/node');
 const requestIp = require('request-ip');
 
 const app = express();
+
 const customErrorHandler = new CustomerErrorHandler();
-
-
 const config = new Config(process.env.NODE_ENV);
-//
+
+Sentry.init({ dsn: global.config.sentryUrl });
 
 // IP address middleware.
 
@@ -38,14 +37,6 @@ app.use(AuthService.verifyAuthentication);
 
 app.use(bodyParser.json());
 
-app.use((req: CustomRequest, res: any, next: NextFunction) => {
-    if(req.secure) {
-        next();
-    } else {
-        res.redirect(301, `https://${req.headers.host.split(':')[0]}:${global.config.httpsPort}${req.url}`);
-    }
-});
-
 MongoClient.connect(global.config.dbUrl, (err: any, database: any) => {
     (err) && console.log(err);
     const db = database.db('menu');
@@ -60,17 +51,8 @@ MongoClient.connect(global.config.dbUrl, (err: any, database: any) => {
     const cert = fs.readFileSync('src/cert/server.cert');
 
     http.createServer(app).listen(global.config.httpPort,() => {
-        const date = new Date().toString();
-        console.log(date);
-        console.log(('App is running at http://localhost:%d in %s mode'),
-            global.config.httpPort, app.get('env'));
+        console.log((`App is running at http://localhost:${global.config.httpPort} in ${global.config.name} mode`));
+        console.log('port' + global.config.httpPort, 'env' + app.get('env'));
     });
-
-    https.createServer({key, cert}, app).listen(global.config.httpsPort,() => {
-        const date = new Date().toString();
-        console.log(date);
-        console.log(('App is running at https://localhost:%d in %s mode'),
-            global.config.httpsPort, app.get('env'));
-    })
 });
 

@@ -7,16 +7,18 @@ const Joi = require("joi");
 class Body  {
     name: JoiObject;
     measurement: JoiObject;
+    imgSrc: JoiObject;
     constructor() {
         this.name = Joi.string().required().trim();
         this.measurement = Joi.string().required().trim();
+        this.imgSrc = Joi.string().required().trim();
     }
 }
 
 const schemas = {
     createFood: Joi.object().keys({
         headers: Joi.object().keys(new ApiReqWithPayloadHeadersSchema()).unknown(true),
-        body : new Body()
+        body: new Body()
     }).unknown(true),
     getOrDeleteFood: Joi.object().keys({
         headers: Joi.object().keys(new ApiReqHeadersSchema()).unknown(true),
