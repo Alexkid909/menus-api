@@ -1,0 +1,3 @@
+FROM node:11
+WORKDIR /usr/app
+EXPOSE 49161 8080 8443

@@ -1,0 +1,14 @@
+version: "2"
+services:
+  web:
+    build:
+      context: .
+    image: 'menus-api:dev'
+    command: npm run serve:dev
+    volumes:
+      - .:/usr/app/
+      - ./node_modules:/usr/app/node_modules
+    ports:
+      - "49161:8443"
+      - "49162:9229"
+    container_name: 'menus-api-dev'

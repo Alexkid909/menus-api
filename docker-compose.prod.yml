@@ -1,0 +1,11 @@
+version: "2"
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    ports:
+      - "443:443"
+      - "80:80"
+      - "9229:9229"
+    container_name: 'menus-api'
