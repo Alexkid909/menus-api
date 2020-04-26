@@ -9,6 +9,7 @@ import { validation } from "../routes/validation/meal-foods";
 import {ApiSuccessBody} from "../classes/response/apiSuccessBody";
 import {TenantUsersService} from "./tenant-users.service";
 import {HelperService} from "./helpers.service";
+import {bustCache} from "./cache.service";
 
 
 const Joi = require('joi');
@@ -38,7 +39,6 @@ export class MealFoodsService {
 
     getMealFoodsHandler(req: CustomRequest, res: Response, next: NextFunction) {
         let mealFoodsLinks: Array<MealFoodLink>;
-
         Joi.validate(req, validation.getMealFoods, HelperService.validationHandler).then(() => {
             return this.tenantUsersService.hasTenantAccess(req);
         }).then((success: any) => {
@@ -62,33 +62,34 @@ export class MealFoodsService {
     };
 
     deleteMealFoodHandler(req: CustomRequest, res: Response, next: NextFunction) {
-
+        const tenantId = req.headers['tenant-id'];
         Joi.validate(req, validation.deleteMealFoods, HelperService.validationHandler).then(() => {
             return this.tenantUsersService.hasTenantAccess(req);
-        }).then((success: any) => {
+        }).then(() => {
             const details = {'_id' : new ObjectID(req.params.mealFoodId)};
             return this.mealFoodsCollection.findOneAndDelete(details, {projection: '_id'})
         }).then((success: any) => {
+            bustCache([req.url, `/meals/${req.params.mealId}/foods`], tenantId);
             res.send(new ApiSuccessBody('success', [`MealFoodLink ${success.value._id} deleted`]));
         }).catch(next);
     };
 
     addFoodsToMealHandler(req: CustomRequest, res: Response, next: NextFunction) {
-
+        const tenantId = req.headers['tenant-id'];
         Joi.validate(req, validation.createMealFoods, HelperService.validationHandler).then(() => {
             return this.tenantUsersService.hasTenantAccess(req);
-        }).then((success: any) => {
+        }).then(() => {
             const mealFoods: Array<MealFoodLink> = req.body.map((mealFood: { foodId: string, qty: number } ) => {
                 return new MealFoodLink(new ObjectID(req.params.mealId), new ObjectID(mealFood.foodId), mealFood.qty);
             });
             return this.mealFoodsCollection.insert(mealFoods)
         }).then((success: any) => {
+            bustCache([req.url], tenantId);
             res.status(201).send(new ApiSuccessBody('success', success.ops));
         }).catch(next);
     }
 
     updateMealFoodHandler(req: CustomRequest, res: Response, next: NextFunction) {
-
         Joi.validate(req, validation.updateMealFoods, HelperService.validationHandler).then(() => {
             return this.tenantUsersService.hasTenantAccess(req);
         }).then((success: any) => {

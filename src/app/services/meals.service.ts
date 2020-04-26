@@ -10,6 +10,7 @@ import { DatabaseError } from "../classes/internalErrors/databaseError";
 import { DefaultQuery } from "../classes/defaultQuery";
 import { DefaultQueryOptions } from "../classes/db/defaultQueryOptions";
 import {TenantUsersService} from "./tenant-users.service";
+import {bustCache} from "./cache.service";
 
 const Joi = require('joi');
 
@@ -51,45 +52,51 @@ export class MealService {
     }
 
     createMealHandler(req: CustomRequest, res: Response, next: NextFunction) {
+        const tenantId = req.headers['tenant-id'];
         Joi.validate(req, validation.createMeal, HelperService.validationHandler).then(() => {
             return this.tenantUsersService.hasTenantAccess(req);
         }).then(() => {
-            return this.tenantsService.getTenant(req.headers['tenant-id'])
+            return this.tenantsService.getTenant(tenantId)
         }).then((success: any) => {
             if (success) {
-                const meal = new Meal(req.body.name, req.headers['tenant-id'], null, null, req.body.imgSrc);
+                const meal = new Meal(req.body.name, tenantId, null, null, req.body.imgSrc);
                 return this.mealsCollection.insert(meal);
             } else {
-                const errorData = { tenantId: req.headers['tenant-id'] };
+                const errorData = { tenantId };
                 throw new DatabaseError('No such tenant', ['No such tenant exists with that tenant id'], errorData);
             }
         }).then((success: any) => {
+            bustCache(['/meals'], tenantId);
             res.status(201).send(new ApiSuccessBody('success', [`Meal created`], success.ops[0]));
         }).catch(next);
     }
 
     deleteMealHandler(req: CustomRequest, res: Response, next: NextFunction) {
+        const tenantId = req.headers['tenant-id'];
         Joi.validate(req, validation.getOrDeleteMeal, HelperService.validationHandler).then(() => {
             return this.tenantUsersService.hasTenantAccess(req);
         }).then(() => {
-            const query = new DefaultQuery(req.params.mealId, req.headers['tenant-id']);
+            const query = new DefaultQuery(req.params.mealId, tenantId);
             return this.mealsCollection.findOneAndDelete(query)
         }).then((doc: any) => {
             const body = new ApiSuccessBody('success', []);
             body.newMessage(`Meal ${doc.value._id} deleted`);
+            bustCache(['/meals'], tenantId);
             res.send(body);
         }).catch(next);
     }
 
     updateMealHandler(req: CustomRequest, res: Response, next: NextFunction) {
+        const tenantId = req.headers['tenant-id'];
         Joi.validate(req, validation.updateMeal, HelperService.validationHandler).then(() => {
             return this.tenantUsersService.hasTenantAccess(req);
-        }).then((success: any) => {
-            const update = new Meal(req.body.name, req.headers['tenant-id'], null, null, req.body.imgSrc);
+        }).then(() => {
+            const update = new Meal(req.body.name, tenantId, null, null, req.body.imgSrc);
             const options = Object.assign(this.defaultQueryOptions, { returnOriginal: false });
-            const query = new DefaultQuery(req.params.mealId, req.headers['tenant-id']);
+            const query = new DefaultQuery(req.params.mealId, tenantId);
             return this.mealsCollection.findOneAndUpdate(query, update, {returnOriginal: false})
         }).then((success: any) => {
+            bustCache(['/meals', req.url], tenantId);
             res.send(new ApiSuccessBody('success', success.value));
         }).catch(next);
     }

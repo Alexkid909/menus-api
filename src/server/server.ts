@@ -10,6 +10,7 @@ const cors = require('cors');
 const http = require('http');
 const Sentry = require('@sentry/node');
 const requestIp = require('request-ip');
+import { cache } from "../app/services/cache.service";
 
 const app = express();
 
@@ -33,6 +34,11 @@ app.use(AuthService.verifyAuthentication);
 //Body parsing middleware.
 
 app.use(bodyParser.json());
+
+//Caching with redis middleware
+
+app.use(cache(600));
+
 
 // Global rate limiter
 

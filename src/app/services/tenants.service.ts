@@ -10,6 +10,7 @@ import { DatabaseError } from "../classes/internalErrors/databaseError";
 import { TenantUserLink } from "../classes/joins/tenantUserLink";
 import { TenantUser } from "../classes/artefacts/tenantUser";
 import { TenantUsersService } from "./tenant-users.service";
+import {bustCache} from "./cache.service";
 
 
 const Joi = require("joi");
@@ -69,6 +70,7 @@ export class TenantsService {
             tenant = success.ops[0];
             return this.addUserToTenant(userId, tenant._id.toHexString())
         }).then((success: any) => {
+            bustCache(['/tenants']);
             res.status(201).send(tenant);
         }).catch(next);
     }

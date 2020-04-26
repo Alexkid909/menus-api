@@ -37,6 +37,7 @@
     "express-validation": "^1.0.2",
     "joi": "^14.3.1",
     "joi-password-complexity": "^2.0.1",
+    "memory-cache": "^0.2.0",
     "moment": "^2.24.0",
     "mongo-error-parser": "^0.1.1",
     "mongodb": "^3.0.10",
