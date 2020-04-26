@@ -6,5 +6,5 @@ COPY webpack.prod.config.js ./
 COPY tsconfig.json ./
 COPY ./src ./src
 RUN npm run build:prod
-EXPOSE 8443 8080 9229
+EXPOSE 8080 9229
 CMD [ "node", "dist/server.js"]

@@ -9,6 +9,6 @@ services:
       - .:/usr/app/
       - ./node_modules:/usr/app/node_modules
     ports:
-      - "49161:8443"
+      - "49161:8080"
       - "49162:9229"
     container_name: 'menus-api-dev'

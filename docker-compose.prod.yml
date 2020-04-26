@@ -5,7 +5,6 @@ services:
       context: .
       dockerfile: Dockerfile.prod
     ports:
-      - "443:443"
-      - "80:80"
+      - "8080:80"
       - "9229:9229"
     container_name: 'menus-api'
