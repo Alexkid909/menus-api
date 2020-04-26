@@ -1,16 +1,13 @@
+import {HelperService} from "../app/services/helpers.service";
 const express = require('express');
 
 import { CustomerErrorHandler } from "../app/classes/customerErrorHandler";
 import { AuthService } from "../app/services/auth.service";
 import { Config } from "../config/config";
-import { NextFunction } from "express";
-
-import { CustomRequest } from "../app/classes/request/customRequest";
 const bodyParser = require("body-parser");
 const MongoClient = require("mongodb").MongoClient;
 const cors = require('cors');
 const http = require('http');
-const fs = require('fs');
 const Sentry = require('@sentry/node');
 const requestIp = require('request-ip');
 
@@ -37,6 +34,15 @@ app.use(AuthService.verifyAuthentication);
 
 app.use(bodyParser.json());
 
+// Global rate limiter
+
+app.use(HelperService.apiLimiter());
+
+// Auth route specific rate limiting
+
+app.use('/users/authenticate', HelperService.apiLimiter(5, 10));
+app.use('/users/register', HelperService.apiLimiter(5, 10));
+
 MongoClient.connect(global.config.dbUrl, (err: any, database: any) => {
     (err) && console.log(err);
     const db = database.db('menu');
@@ -46,9 +52,6 @@ MongoClient.connect(global.config.dbUrl, (err: any, database: any) => {
     // Error handling middleware.
 
     app.use(customErrorHandler.handleErrors);
-
-    const key = fs.readFileSync('src/cert/server.key');
-    const cert = fs.readFileSync('src/cert/server.cert');
 
     http.createServer(app).listen(global.config.httpPort,() => {
         console.log((`App is running at http://localhost:${global.config.httpPort} in ${global.config.name} mode`));
