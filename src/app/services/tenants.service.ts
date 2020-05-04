@@ -140,7 +140,8 @@ export class TenantsService {
             return (error) ? Promise.reject(error) : Promise.resolve(value);
         }).then((success: any) => {
             const details = {'_id': new ObjectID(req.params.tenantUserId)};
-            return this.tenantUsersCollection.findOneAndDelete(details, {projection: '_id'})
+            const options = { projection: { _id: 1 } };
+            return this.tenantUsersCollection.findOneAndDelete(details, options)
         }).then((success: any) => {
             res.send(new ApiSuccessBody('success', [`TenantUserLink ${success.value._id} deleted`]));
         }).catch(next);

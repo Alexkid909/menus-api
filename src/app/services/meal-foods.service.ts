@@ -67,7 +67,8 @@ export class MealFoodsService {
             return this.tenantUsersService.hasTenantAccess(req);
         }).then(() => {
             const details = {'_id' : new ObjectID(req.params.mealFoodId)};
-            return this.mealFoodsCollection.findOneAndDelete(details, {projection: '_id'})
+            const options = { projection: { _id: 1 } };
+            return this.mealFoodsCollection.findOneAndDelete(details, options);
         }).then((success: any) => {
             bustCache([req.url, `/meals/${req.params.mealId}/foods`], tenantId);
             res.send(new ApiSuccessBody('success', [`MealFoodLink ${success.value._id} deleted`]));

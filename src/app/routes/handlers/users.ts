@@ -36,7 +36,7 @@ export class UsersHandlers {
 
     getUserHandler(req: CustomRequest, res: Response, next: NextFunction) {
         Joi.validate(req, validation.getOrDeleteUser, HelperService.validationHandler).then(() => {
-            return this.usersService.getUserById(req.params.userId);
+            return this.usersService.getUserById(new ObjectID(req.params.userId));
         }).then((success: any) => {
             res.send(new ApiSuccessBody('success', ['Found user'], success));
         }).catch(next);
