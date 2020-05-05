@@ -4,13 +4,13 @@ const express = require('express');
 import { CustomerErrorHandler } from "../app/classes/customerErrorHandler";
 import { AuthService } from "../app/services/auth.service";
 import { Config } from "../config/config";
+
 const bodyParser = require("body-parser");
 const MongoClient = require("mongodb").MongoClient;
 const cors = require('cors');
 const http = require('http');
 const Sentry = require('@sentry/node');
 const requestIp = require('request-ip');
-import { cache } from "../app/services/cache.service";
 
 const app = express();
 
@@ -37,8 +37,7 @@ app.use(bodyParser.json());
 
 //Caching with redis middleware
 
-app.use(cache(600));
-
+// app.use(cacheService.cacheRoute(600));
 
 // Global rate limiter
 

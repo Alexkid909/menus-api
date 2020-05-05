@@ -9,9 +9,6 @@ import { validation } from "../routes/validation/meal-foods";
 import {ApiSuccessBody} from "../classes/response/apiSuccessBody";
 import {TenantUsersService} from "./tenant-users.service";
 import {HelperService} from "./helpers.service";
-import {bustCache} from "./cache.service";
-
-
 const Joi = require('joi');
 
 
@@ -70,7 +67,6 @@ export class MealFoodsService {
             const options = { projection: { _id: 1 } };
             return this.mealFoodsCollection.findOneAndDelete(details, options);
         }).then((success: any) => {
-            bustCache([req.url, `/meals/${req.params.mealId}/foods`], tenantId);
             res.send(new ApiSuccessBody('success', [`MealFoodLink ${success.value._id} deleted`]));
         }).catch(next);
     };
@@ -85,7 +81,6 @@ export class MealFoodsService {
             });
             return this.mealFoodsCollection.insert(mealFoods)
         }).then((success: any) => {
-            bustCache([req.url], tenantId);
             res.status(201).send(new ApiSuccessBody('success', success.ops));
         }).catch(next);
     }

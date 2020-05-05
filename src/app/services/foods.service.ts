@@ -11,7 +11,6 @@ import { DefaultQuery } from "../classes/defaultQuery";
 import { DefaultQueryOptions } from "../classes/db/defaultQueryOptions";
 import { UsersService } from "./users.service";
 import { TenantUsersService } from "./tenant-users.service";
-import { bustCache } from "./cache.service";
 
 const Joi = require("joi");
 
@@ -61,7 +60,6 @@ export class FoodsService {
             return this.tenantsService.getTenant(tenantId)
         }).then((success: any) => {
             if (success) {
-                bustCache(['/foods'], tenantId);
                 const food = new Food(req.body.name, req.body.measurement, tenantId, null, null, req.body.imgSrc);
                 return this.foodsCollection.insertOne(food);
             } else {
@@ -78,7 +76,6 @@ export class FoodsService {
         Joi.validate(req, validation.getOrDeleteFood, HelperService.validationHandler).then(() => {
             return this.tenantUsersService.hasTenantAccess(req);
         }).then(() => {
-            bustCache(['/foods'], tenantId);
             const query = new DefaultQuery(req.params.foodId, tenantId);
             return this.foodsCollection.findOneAndDelete(query, this.defaultQueryOptions);
         }).then((doc: any) => {
@@ -94,7 +91,6 @@ export class FoodsService {
         Joi.validate(req, validation.updateFood, HelperService.validationHandler).then(() => {
             return this.tenantUsersService.hasTenantAccess(req);
         }).then(() => {
-            bustCache(['/foods', req.url], tenantId);
             const query = new DefaultQuery(req.params.foodId, tenantId);
             const options = Object.assign(this.defaultQueryOptions, { returnOriginal: false });
             const update = new Food(req.body.name, req.body.measurement, tenantId, null, null, req.body.imgSrc);

@@ -10,7 +10,6 @@ import { DatabaseError } from "../classes/internalErrors/databaseError";
 import { DefaultQuery } from "../classes/defaultQuery";
 import { DefaultQueryOptions } from "../classes/db/defaultQueryOptions";
 import {TenantUsersService} from "./tenant-users.service";
-import {bustCache} from "./cache.service";
 
 const Joi = require('joi');
 
@@ -19,7 +18,6 @@ export class MealService {
     private tenantsService: TenantsService;
     private defaultQueryOptions: DefaultQueryOptions;
     private tenantUsersService: TenantUsersService;
-
 
     constructor(db: any) {
         this.mealsCollection = db.collection('meals');
@@ -66,7 +64,6 @@ export class MealService {
                 throw new DatabaseError('No such tenant', ['No such tenant exists with that tenant id'], errorData);
             }
         }).then((success: any) => {
-            bustCache(['/meals'], tenantId);
             res.status(201).send(new ApiSuccessBody('success', [`Meal created`], success.ops[0]));
         }).catch(next);
     }
@@ -81,7 +78,6 @@ export class MealService {
         }).then((doc: any) => {
             const body = new ApiSuccessBody('success', []);
             body.newMessage(`Meal ${doc.value._id} deleted`);
-            bustCache(['/meals'], tenantId);
             res.send(body);
         }).catch(next);
     }
@@ -96,7 +92,6 @@ export class MealService {
             const query = new DefaultQuery(req.params.mealId, tenantId);
             return this.mealsCollection.findOneAndUpdate(query, update, {returnOriginal: false})
         }).then((success: any) => {
-            bustCache(['/meals', req.url], tenantId);
             res.send(new ApiSuccessBody('success', success.value));
         }).catch(next);
     }

@@ -131,7 +131,7 @@ export class UsersHandlers {
 
     getUserTenantsHandler(req: CustomRequest, res: Response, next: NextFunction) {
         Joi.validate(req, validation.getOrDeleteUser, HelperService.validationHandler).then(() => {
-            const userId = this.usersService.getUserIdFromAuth(req.headers.authorization);
+            const userId = UsersService.getUserIdFromAuth(req.headers.authorization);
             return this.tenantUsersService.getUserTenants(userId);
         }).then((success: any) => {
             const tenantIds = success.map((userTenant: TenantUserLink) => userTenant.tenantId);

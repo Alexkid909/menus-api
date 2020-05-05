@@ -1,44 +1,52 @@
-const mcache = require('memory-cache');
-
 import {CustomRequest} from "../classes/request/customRequest";
 import {NextFunction, Response} from "express";
+const cache = require('memory-cache');
 
-interface CustomResponse extends Response {
+
+export interface CustomResponse extends Response {
     sendResponse: any;
     send: any;
 }
 
-const cache = (duration: number) => {
-    return  (req: CustomRequest, res: CustomResponse, next: NextFunction) => {
-        if (req.method === 'GET') {
-            const key = `__express__${req.originalUrl || req.url}___tenant__${req.headers["tenant-id"]}`;
-            const cachedBody = mcache.get(key);
-            if (cachedBody) {
-                res.send(cachedBody);
-                logCache();
-                return;
-            } else {
-                res.sendResponse = res.send;
-                res.send = (body: any) => {
-                    mcache.put(key, body, duration * 1000);
-                    logCache();
-                    res.sendResponse(body);
+export class CacheService {
+    cache: any;
+
+    constructor() {
+        this.cache = new cache.Cache()
+    }
+
+    cacheRoute(duration: number, keyPrefix = '') {
+        return (req: CustomRequest, res: CustomResponse, next: NextFunction) => {
+            this.logCache();
+            if (req.method === 'GET') {
+                const key = `__express__${keyPrefix}__route__${req.originalUrl || req.url}__tenant__${req.headers["tenant-id"]}`;
+                const cachedBody = this.cache.get(key);
+                if (cachedBody) {
+                    res.send(cachedBody);
+                    return;
+                } else {
+                    res.sendResponse = res.send;
+                    res.send = (body: any) => {
+                        this.cache.put(key, body, duration * 1000);
+                        res.sendResponse(body);
+                    }
                 }
             }
+            this.logCache();
+            next();
         }
-        next();
     };
-};
 
-const bustCache = (routes: Array<string>, tenantId: string = null) => {
-    routes.forEach((route: string) => {
+    bustRoutes(routes: Array<string>, tenantId: string = null) {
+        routes.forEach((route: string) => this.bustRoute(route, tenantId));
+    };
+
+    bustRoute(route: string, tenantId: string = null) {
         const key = `__express__${route}${tenantId ? `__tenant__${tenantId}` : ``}`;
-        mcache.del(key);
-    });
-};
+        this.cache.del(key);
+    };
 
-const logCache = () => {
-    console.log('cache data', JSON.parse(mcache.exportJson()));
-};
-
-export {cache, bustCache};
+    logCache() {
+        console.log('cache data', JSON.parse(this.cache.exportJson()));
+    };
+}

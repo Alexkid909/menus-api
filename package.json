@@ -7,7 +7,7 @@
     "test": "jasmine-ts ./src/unit_tests/*.spec.ts",
     "build:dev": "webpack --config webpack.dev.config.js",
     "build:prod": "webpack --config webpack.prod.config.js",
-    "serve:dev": "nodemon --inspect ./dist/server.js",
+    "serve:dev": "nodemon --inspect=0.0.0.0 ./dist/server.js",
     "serve:prod": "node ./dist/server.js"
   },
   "author": "",

@@ -10,8 +10,6 @@ import { DatabaseError } from "../classes/internalErrors/databaseError";
 import { TenantUserLink } from "../classes/joins/tenantUserLink";
 import { TenantUser } from "../classes/artefacts/tenantUser";
 import { TenantUsersService } from "./tenant-users.service";
-import {bustCache} from "./cache.service";
-
 
 const Joi = require("joi");
 
@@ -55,7 +53,7 @@ export class TenantsService {
 
     createTenantHandler(req: CustomRequest, res: Response, next: NextFunction) {
         let tenant: Tenant;
-        const userId = this.usersService.getUserIdFromAuth(req.headers.authorization);
+        const userId = UsersService.getUserIdFromAuth(req.headers.authorization);
         Joi.validate(req , validation.createTenant, HelperService.validationHandler).then((success: any) => {
             return this.usersService.getUserById(new ObjectID(userId));
         }).then((success: any) => {
@@ -70,7 +68,7 @@ export class TenantsService {
             tenant = success.ops[0];
             return this.addUserToTenant(userId, tenant._id.toHexString())
         }).then((success: any) => {
-            bustCache(['/tenants']);
+            // bustRoute('/tenants');
             res.status(201).send(tenant);
         }).catch(next);
     }
