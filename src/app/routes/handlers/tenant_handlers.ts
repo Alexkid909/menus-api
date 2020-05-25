@@ -87,9 +87,9 @@ export class TenantsHandlers {
 
     updateTenantHandler(req: CustomRequest, res: Response, next: NextFunction) {
         Joi.validate(req, validation.updateTenant, HelperService.validationHandler).then(() => {
-            const tenant = new Tenant(req.body.name);
+            const update = new Tenant(req.body.name);
             const details = {'_id': new ObjectID(req.params.tenantId)};
-            return this.tenantsCollection.findOneAndUpdate(details, tenant, {returnOriginal: false})
+            return this.tenantsCollection.findOneAndUpdate(details, { $set: update }, {returnOriginal: false})
         }).then((success: any) => {
             res.send(new ApiSuccessBody('success', success.value));
         }).catch(next);

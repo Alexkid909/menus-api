@@ -94,7 +94,7 @@ export class FoodsService {
             const query = new DefaultQuery(req.params.foodId, tenantId);
             const options = Object.assign(this.defaultQueryOptions, { returnOriginal: false });
             const update = new Food(req.body.name, req.body.measurement, tenantId, null, null, req.body.imgSrc);
-            return this.foodsCollection.findOneAndUpdate(query, update, options)
+            return this.foodsCollection.findOneAndUpdate(query, { $set: update }, options)
         }).then((success: any) => {
             res.send(new ApiSuccessBody('success', success.value));
         }).catch(next);

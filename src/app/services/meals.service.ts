@@ -83,6 +83,7 @@ export class MealService {
     }
 
     updateMealHandler(req: CustomRequest, res: Response, next: NextFunction) {
+        debugger;
         const tenantId = req.headers['tenant-id'];
         Joi.validate(req, validation.updateMeal, HelperService.validationHandler).then(() => {
             return this.UserTenantService.userHasTenantAccess(req);
@@ -90,7 +91,7 @@ export class MealService {
             const update = new Meal(req.body.name, tenantId, null, null, req.body.imgSrc);
             const options = Object.assign(this.defaultQueryOptions, { returnOriginal: false });
             const query = new DefaultQuery(req.params.mealId, tenantId);
-            return this.mealsCollection.findOneAndUpdate(query, update, {returnOriginal: false})
+            return this.mealsCollection.findOneAndUpdate(query, { $set: update }, {returnOriginal: false})
         }).then((success: any) => {
             res.send(new ApiSuccessBody('success', success.value));
         }).catch(next);
