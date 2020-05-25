@@ -17,7 +17,10 @@ const app = express();
 const customErrorHandler = new CustomerErrorHandler();
 const config = new Config(process.env.NODE_ENV);
 
-Sentry.init({ dsn: global.config.sentryUrl });
+Sentry.init({
+    dsn: global.config.sentryUrl,
+    autoBreadcrumbs: { console: false }
+});
 
 // IP address middleware.
 
@@ -34,10 +37,6 @@ app.use(AuthService.verifyAuthentication);
 //Body parsing middleware.
 
 app.use(bodyParser.json());
-
-//Caching with redis middleware
-
-// app.use(cacheService.cacheRoute(600));
 
 // Global rate limiter
 

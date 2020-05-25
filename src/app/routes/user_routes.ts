@@ -1,10 +1,14 @@
+const events = require('events');
+
 import {Application, NextFunction, Response} from "express";
 import { ApiErrorBody } from "../classes/response/apiErrorBody";
 import { CustomRequest } from "../classes/request/customRequest";
-import { UsersHandlers } from "./handlers/users";
+import { UsersHandlers } from "./handlers/user_handlers";
+import { CacheService, CustomResponse} from "../services/cache.service";
 
 module.exports = (app: Application, db: any) => {
     const usersHandlers = new UsersHandlers(db);
+    const cacheService = new CacheService('user-routes');
 
     app.post('/users/register', (req: CustomRequest, res: Response, next: NextFunction) => {
         usersHandlers.createUserHandler(req, res, next);
@@ -34,8 +38,7 @@ module.exports = (app: Application, db: any) => {
         usersHandlers.authenticateUserHandler(req, res, next);
     });
 
-    app.get('/user/tenants', (req: CustomRequest, res: Response, next: NextFunction) => {
-        // res.status(501).send(new ApiErrorBody(['Route not implemented']));
+    app.get('/user/tenants', cacheService.cacheUserRoute, (req: CustomRequest, res: CustomResponse, next: NextFunction) => {
         usersHandlers.getUserTenantsHandler(req, res, next);
     });
 };

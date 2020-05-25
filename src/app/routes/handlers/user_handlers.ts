@@ -18,14 +18,14 @@ const Joi = require("joi");
 export class UsersHandlers {
     usersService: UsersService;
     authService: AuthService;
-    tenantUsersService: TenantUsersService;
+    userTenantService: TenantUsersService;
     tenantsService: TenantsService;
 
 
     constructor(db: any) {
         this.usersService = new UsersService(db);
         this.authService = new AuthService(db);
-        this.tenantUsersService = new TenantUsersService(db);
+        this.userTenantService = new TenantUsersService(db);
         this.tenantsService = new TenantsService(db);
     }
 
@@ -132,7 +132,7 @@ export class UsersHandlers {
     getUserTenantsHandler(req: CustomRequest, res: Response, next: NextFunction) {
         Joi.validate(req, validation.getOrDeleteUser, HelperService.validationHandler).then(() => {
             const userId = UsersService.getUserIdFromAuth(req.headers.authorization);
-            return this.tenantUsersService.getUserTenants(userId);
+            return this.userTenantService.getUserTenants(userId);
         }).then((success: any) => {
             const tenantIds = success.map((userTenant: TenantUserLink) => userTenant.tenantId);
             return this.tenantsService.getTenants(tenantIds);

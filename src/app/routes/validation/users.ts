@@ -45,8 +45,7 @@ const schemas = {
             userName: Joi.string().min(1),
             password: Joi.string().min(8).regex(passwordRegex),
             passwordConfirm: Joi.any().valid(Joi.ref('password')).required().options({ language: { any: { allowOnly: 'must match password' } } })
-
-}
+        }
     }).unknown(true)
 };
 
