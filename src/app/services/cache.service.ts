@@ -4,7 +4,8 @@ import emitter from "./events.service";
 import { EventEmitter } from "events";
 import { UsersService } from "./users.service";
 
-const cache = require('memory-cache');
+const Memcached = require('memcached');
+const globalAny:any = global;
 
 export interface CustomResponse extends Response {
     sendResponse: any;
@@ -30,7 +31,10 @@ export class CacheKey {
     }
 
     toString() {
-        return JSON.stringify(this);
+        return this.optionalArgs
+            .map((arg: KeyValuePair) => (`__${arg.key}__${arg.value}`))
+            .join()
+            .concat(`__route__${this.route}`);
     }
 }
 
@@ -41,8 +45,8 @@ export class CacheService {
 
     constructor(name?: string) {
         this.name = name;
-        this.cache = new cache.Cache()
         this.emitter = emitter;
+        this.cache = new Memcached(`${globalAny.config.memcachedAddress}:${globalAny.config.memcachedPort}`);
         this.cacheUserRoute = this.cacheUserRoute.bind(this);
         this.cacheTenantRoute = this.cacheTenantRoute.bind(this);
         this.listen();
@@ -52,34 +56,63 @@ export class CacheService {
         if (this.name) {
             this.emitter.addListener(`${this.name}:bust-route`, this.bustRoute.bind(this));
         }
+        // this.cache.on('issue', (details: any) => console.log('issue event', details));
+        // this.cache.on('failure', (details: any) => console.log('failure event', details));
+        // this.cache.on('reconnecting', (details: any) => console.log('reconnecting event', details));
+        // this.cache.on('reconnect', (details: any) => console.log('reconnect event', details));
+        // this.cache.on('remove', (details: any) => console.log('issue event', details));
     }
 
     cacheRoute(duration: number, optionalArgs?: Array<KeyValuePair>) {
         return (req: CustomRequest, res: CustomResponse, next: NextFunction) => {
             if (req.method === 'GET') {
                 const key = new CacheKey(req.originalUrl || req.url, optionalArgs);
-                const cachedBody = this.cache.get(key);
-                if (cachedBody) {
-                    res.send(cachedBody);
-                    console.log(`returning from cache`, key);
-                    return;
-                } else {
-                    console.log('not in cache', key);
-                    res.sendResponse = res.send;
-                    res.send = (body: any) => {
-                        this.cache.put(key, body, duration * 1000);
-                        res.sendResponse(body);
-                    }
+                const keyString = key.toString();
+                const getCachedBody = (): Promise<any> => {
+                    return new Promise((resolve, reject) => {
+                            this.cache.get(keyString, (err: any, value: any) => {
+                            if (err) {
+                                reject(err);
+                            }
+                            resolve(value);
+                        })
+                    })
                 }
+
+                getCachedBody().then((cachedBody:any) => {
+                    if (cachedBody) {
+                        res.send(cachedBody);
+                        console.log(`returning from cache`, keyString, cachedBody);
+                        return;
+                    } else {
+                        console.log('not in cache', keyString);
+                        res.sendResponse = res.send;
+                        res.send = (body: any) => {
+                            this.cache.set(keyString, body, duration * 1000, (err: any) => {
+                                if (err) {
+                                    console.log(err);
+                                }
+                            });
+                            res.sendResponse(body);
+                        }
+                        next();
+                    }
+                }).catch((err) => {
+                    console.log(err);
+                    throw err;
+                });
+            } else {
+                 next();
             }
-            next();
         }
     };
 
     bustRoute(route: string, optionalArgs?: Array<KeyValuePair>) {
         const key = new CacheKey(route, optionalArgs);
-        this.cache.del(JSON.stringify(key));
-        this.logCache();
+        const keyString = key.toString();
+        this.cache.del(keyString, (err: any) => {
+            if (err) throw err;
+        });
     }
 
     private bustCache() {
@@ -88,10 +121,6 @@ export class CacheService {
 
     bustRoutes(routes: Array<string>, optionalArgs?: Array<KeyValuePair>) {
         routes.forEach((route: string) => this.bustRoute(route, optionalArgs));
-    };
-
-    logCache() {
-        console.log('cache data', JSON.parse(this.cache.exportJson()));
     };
 
     cacheUserRoute(req: CustomRequest, res: CustomResponse, next: NextFunction) {
