@@ -132,7 +132,9 @@ export class CacheService {
     }
 
     cacheTenantRoute(req: CustomRequest, res: CustomResponse, next: NextFunction) {
-        const cachePrefix = new KeyValuePair('tenant', req.headers["tenant-id"]);
-        return this.cacheRoute(600, [cachePrefix])(req, res, next);
+        const userId = UsersService.getUserIdFromAuth(req.headers.authorization);
+        const userPrefix = new KeyValuePair('user', userId);
+        const tenantPrefix = new KeyValuePair('tenant', req.headers["tenant-id"]);
+        return this.cacheRoute(600, [tenantPrefix, userPrefix])(req, res, next);
     }
 }
