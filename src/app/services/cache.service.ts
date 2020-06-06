@@ -33,7 +33,7 @@ export class CacheKey {
     toString() {
         return this.optionalArgs
             .map((arg: KeyValuePair) => (`__${arg.key}__${arg.value}`))
-            .join()
+            .join('')
             .concat(`__route__${this.route}`);
     }
 }
@@ -88,11 +88,13 @@ export class CacheService {
                         console.log('not in cache', keyString);
                         res.sendResponse = res.send;
                         res.send = (body: any) => {
-                            this.cache.set(keyString, body, duration * 1000, (err: any) => {
-                                if (err) {
-                                    console.log(err);
-                                }
-                            });
+                            if (body.status === 'success') {
+                                this.cache.set(keyString, body, duration * 1000, (err: any) => {
+                                    if (err) {
+                                        console.log(err);
+                                    }
+                                });
+                            }
                             res.sendResponse(body);
                         }
                         next();

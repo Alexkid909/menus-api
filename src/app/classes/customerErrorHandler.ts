@@ -13,34 +13,35 @@ class BulkWriteError {
 const mongoParse = require('mongo-error-parser');
 
 
-export class CustomerErrorHandler {
-    handleErrors: any;
-    constructor() {
-        this.handleErrors = (error: any, req: CustomRequest, res: Response, next: any) => {
-            if (error.name === 'BulkWriteError') {
-                this.handleBulkWriteError(error, res);
-            } else {
-                switch (error.constructor) {
-                    case ValidationError:
-                        this.handleValidationError(error, res);
-                        break;
-                    case AuthenticationError:
-                        this.handleAuthError(error, res);
-                        break;
-                    case DatabaseError:
-                        this.handleDatabaseError(error, res);
-                        break;
-                    default:
-                        this.handleOtherError(error, res);
-                }
-            }
-        };
-    }
+export class CustomErrorHandler {
+    constructor() {}
 
-    private handleDatabaseError(error: DatabaseError, res: Response) {
+    static handleErrors(error: any, req: CustomRequest, res: Response, next: any) {
+        debugger;
+        if (error.name === 'BulkWriteError') {
+            CustomErrorHandler.handleBulkWriteError(error, res);
+        } else {
+            switch (error.constructor) {
+                case ValidationError:
+                    CustomErrorHandler.handleValidationError(error, res);
+                    break;
+                case AuthenticationError:
+                    CustomErrorHandler.handleAuthError(error, res);
+                    break;
+                case DatabaseError:
+                    CustomErrorHandler.handleDatabaseError(error, res);
+                    break;
+                default:
+                    CustomErrorHandler.handleOtherError(error, res);
+            }
+        }
+    };
+
+    private static handleDatabaseError(error: DatabaseError, res: Response) {
         res.status(422).send(new ApiSuccessBody('fail', error.friendlyMessages, error.data));
     }
-    private handleBulkWriteError(error: DatabaseError, res: Response) {
+
+    private static handleBulkWriteError(error: DatabaseError, res: Response) {
         const toCapitalizedWords = (name: string) => {
             const words = name.match(/[A-Za-z][a-z]*/g) || [];
             return words.map((word: string, index: number ) => (index) ? word.toLowerCase() : `${word.charAt(0).toUpperCase()}${word.substring(1)}`).join(" ");
@@ -57,7 +58,7 @@ export class CustomerErrorHandler {
         }
     }
 
-    private handleValidationError = (error: ValidationError, res: Response) => {
+    private static handleValidationError = (error: ValidationError, res: Response) => {
         if(error.data.details.some((data: any) => data.path.includes('params'))) {
             res.status(422).send(new ApiSuccessBody('fail', error.friendlyMessages));
         } else {
@@ -65,7 +66,7 @@ export class CustomerErrorHandler {
         }
     };
 
-    private handleAuthError(error: AuthenticationError, res: Response) {
+    private static handleAuthError(error: AuthenticationError, res: Response) {
         const delay = 10;
         switch (error.message) {
             case 'Hash check failed':
@@ -82,7 +83,7 @@ export class CustomerErrorHandler {
         }
     }
 
-    private handleOtherError(error: any, res: Response) {
+    private static handleOtherError(error: any, res: Response) {
         res.status(500).send('Internal server error');
     };
 }
