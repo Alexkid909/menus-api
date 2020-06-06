@@ -15,7 +15,6 @@ export class UsersService {
         this.usersCollection = db.collection('users');
         this.usersCollection.createIndex({ 'email': 1, 'userName': 1 },{ unique: true, sparse: true });
         this.authService = new AuthService(db);
-        this.jwtService = new JwtService();
     }
 
     getAllUsers() {
@@ -38,10 +37,10 @@ export class UsersService {
         return this.usersCollection.insert(user);
     }
 
-    getUserIdFromAuth(auth: string) {
+    static getUserIdFromAuth(auth: string) {
         const token = auth.split(' ')[1];
         // @ts-ignore
-        return this.jwtService.decode(token, global.config.secret).sub;
+        return JwtService.decode(token, global.config.secret).sub;
     }
 
 }

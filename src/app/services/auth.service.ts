@@ -22,12 +22,7 @@ export class AuthService {
                     underTimeout = (moment(new Date()).toDate() - timeoutExpiry) < 0;
                 }
 
-
-                if(login.failedAttempts < 5 && !underTimeout) {
-                    return true;
-                } else {
-                    return false;
-                }
+                return login.failedAttempts < 5 && !underTimeout;
             } else {
                 return true;
             }
@@ -67,8 +62,6 @@ export class AuthService {
 
     static verifyAuthentication(req: any, res: Response, next: NextFunction) {
 
-        const jwtService = new JwtService();
-
         const checkForExpiredToken = (exp: string) => {
             const expiryDate: any = new Date(exp);
             const now: any = new Date();
@@ -85,7 +78,7 @@ export class AuthService {
                 res.status(401).send(new ApiSuccessBody('failure', ['Invalid auth type']))
             } else {
                 token = req.headers.authorization.split(' ')[1];
-                payload = jwtService.decode(token, global.config.secret);
+                payload = JwtService.decode(token, global.config.secret);
                 if(!payload.sub || !payload.iss || req.clientIp !== payload.iss || !payload.exp) {
                     res.status(401).send(new ApiSuccessBody('failure', ['Authentication failure']))
                 } else if (checkForExpiredToken(payload.exp)) {
@@ -99,15 +92,13 @@ export class AuthService {
     }
 
     generateToken(clientIp: string, userId: string) {
-        const jwtService = new JwtService();
-
         const payload = {
             iss: clientIp,
             sub: userId,
             exp: moment(new Date()).add(1, 'days').toString()
         };
 
-        return jwtService.encode(payload, global.config.secret);
+        return JwtService.encode(payload, global.config.secret);
     }
 
 }

@@ -4,6 +4,7 @@ const express = require('express');
 import { CustomerErrorHandler } from "../app/classes/customerErrorHandler";
 import { AuthService } from "../app/services/auth.service";
 import { Config } from "../config/config";
+
 const bodyParser = require("body-parser");
 const MongoClient = require("mongodb").MongoClient;
 const cors = require('cors');
@@ -16,7 +17,10 @@ const app = express();
 const customErrorHandler = new CustomerErrorHandler();
 const config = new Config(process.env.NODE_ENV);
 
-Sentry.init({ dsn: global.config.sentryUrl });
+Sentry.init({
+    dsn: global.config.sentryUrl,
+    autoBreadcrumbs: { console: false }
+});
 
 // IP address middleware.
 

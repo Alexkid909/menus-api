@@ -9,8 +9,6 @@ import { validation } from "../routes/validation/meal-foods";
 import {ApiSuccessBody} from "../classes/response/apiSuccessBody";
 import {TenantUsersService} from "./tenant-users.service";
 import {HelperService} from "./helpers.service";
-
-
 const Joi = require('joi');
 
 
@@ -28,7 +26,7 @@ export class MealFoodsService {
 
     getMealsFoodsHandler(req: CustomRequest, res: Response, next: NextFunction) {
         Joi.validate(req, validation.getMealsFoods, HelperService.validationHandler).then(() => {
-            return this.tenantUsersService.hasTenantAccess(req);
+            return this.tenantUsersService.userHasTenantAccess(req);
         }).then((success: any) => {
             return this.mealFoodsCollection.find({}).toArray();
         }).then((success: any) => {
@@ -38,9 +36,8 @@ export class MealFoodsService {
 
     getMealFoodsHandler(req: CustomRequest, res: Response, next: NextFunction) {
         let mealFoodsLinks: Array<MealFoodLink>;
-
         Joi.validate(req, validation.getMealFoods, HelperService.validationHandler).then(() => {
-            return this.tenantUsersService.hasTenantAccess(req);
+            return this.tenantUsersService.userHasTenantAccess(req);
         }).then((success: any) => {
             const mealFoodsQuery = {'mealId' : new ObjectID(req.params.mealId)};
             const mealFoodsProjection = { 'mealId': false };
@@ -62,22 +59,23 @@ export class MealFoodsService {
     };
 
     deleteMealFoodHandler(req: CustomRequest, res: Response, next: NextFunction) {
-
+        const tenantId = req.headers['tenant-id'];
         Joi.validate(req, validation.deleteMealFoods, HelperService.validationHandler).then(() => {
-            return this.tenantUsersService.hasTenantAccess(req);
-        }).then((success: any) => {
+            return this.tenantUsersService.userHasTenantAccess(req);
+        }).then(() => {
             const details = {'_id' : new ObjectID(req.params.mealFoodId)};
-            return this.mealFoodsCollection.findOneAndDelete(details, {projection: '_id'})
+            const options = { projection: { _id: 1 } };
+            return this.mealFoodsCollection.findOneAndDelete(details, options);
         }).then((success: any) => {
             res.send(new ApiSuccessBody('success', [`MealFoodLink ${success.value._id} deleted`]));
         }).catch(next);
     };
 
     addFoodsToMealHandler(req: CustomRequest, res: Response, next: NextFunction) {
-
+        const tenantId = req.headers['tenant-id'];
         Joi.validate(req, validation.createMealFoods, HelperService.validationHandler).then(() => {
-            return this.tenantUsersService.hasTenantAccess(req);
-        }).then((success: any) => {
+            return this.tenantUsersService.userHasTenantAccess(req);
+        }).then(() => {
             const mealFoods: Array<MealFoodLink> = req.body.map((mealFood: { foodId: string, qty: number } ) => {
                 return new MealFoodLink(new ObjectID(req.params.mealId), new ObjectID(mealFood.foodId), mealFood.qty);
             });
@@ -88,9 +86,8 @@ export class MealFoodsService {
     }
 
     updateMealFoodHandler(req: CustomRequest, res: Response, next: NextFunction) {
-
         Joi.validate(req, validation.updateMealFoods, HelperService.validationHandler).then(() => {
-            return this.tenantUsersService.hasTenantAccess(req);
+            return this.tenantUsersService.userHasTenantAccess(req);
         }).then((success: any) => {
             const mealFoodLink = new MealFoodLink(new ObjectID(req.body.mealId), new ObjectID(req.body.foodId), req.body.qty);
             const details = {'_id': new ObjectID(req.params.mealFoodId)};
