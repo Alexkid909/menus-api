@@ -109,6 +109,17 @@ export class CacheService {
         }
     };
 
+    cacheUserRoute(req: CustomRequest, res: CustomResponse, next: NextFunction) {
+        const userId = UsersService.getUserIdFromAuth(req.headers.authorization);
+        const cachePrefix = new KeyValuePair('user', userId);
+        return this.cacheRoute(600, [cachePrefix])(req, res, next);
+    }
+
+    cacheTenantRoute(req: CustomRequest, res: CustomResponse, next: NextFunction) {
+        const cachePrefix = new KeyValuePair('tenant', req.headers["tenant-id"]);
+        return this.cacheRoute(600, [cachePrefix])(req, res, next);
+    }
+
     bustRoute(route: string, optionalArgs?: Array<KeyValuePair>) {
         const key = new CacheKey(route, optionalArgs);
         const keyString = key.toString();
@@ -117,24 +128,26 @@ export class CacheService {
         });
     }
 
-    private bustCache() {
-        this.cache.clear();
+    bustTenantRoute(req: CustomRequest, path?: string) {
+        const tenantPrefix = new KeyValuePair('tenant', req.headers["tenant-id"])
+        this.bustRoute(path || req.path, [tenantPrefix]);
     }
 
-    bustRoutes(routes: Array<string>, optionalArgs?: Array<KeyValuePair>) {
-        routes.forEach((route: string) => this.bustRoute(route, optionalArgs));
-    };
-
-    cacheUserRoute(req: CustomRequest, res: CustomResponse, next: NextFunction) {
-        const userId = UsersService.getUserIdFromAuth(req.headers.authorization);
-        const cachePrefix = new KeyValuePair('user', userId);
-        return this.cacheRoute(600, [cachePrefix])(req, res, next);
-    }
-
-    cacheTenantRoute(req: CustomRequest, res: CustomResponse, next: NextFunction) {
+    bustUserRoute(req: CustomRequest, path?: string) {
         const userId = UsersService.getUserIdFromAuth(req.headers.authorization);
         const userPrefix = new KeyValuePair('user', userId);
-        const tenantPrefix = new KeyValuePair('tenant', req.headers["tenant-id"]);
-        return this.cacheRoute(600, [tenantPrefix, userPrefix])(req, res, next);
+        this.bustRoute(path || req.path, [userPrefix]);
+    }
+
+    bustRoutes(req: CustomRequest, routes: Array<string>) {
+        routes.forEach((route: string) => this.bustRoute(route));
+    };
+
+    bustTenantRoutes(req: CustomRequest, routes: Array<string>) {
+        routes.forEach((route: string) => this.bustTenantRoute(req, route));
+    };
+
+    private bustCache() {
+        this.cache.clear();
     }
 }

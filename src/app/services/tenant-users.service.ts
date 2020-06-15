@@ -6,14 +6,19 @@ import {TenantUserLink} from "../classes/joins/tenantUserLink";
 import { KeyValuePair } from "./cache.service";
 import emitter from "./events.service";
 import { EventEmitter } from "events";
+import {NextFunction, Response} from "express";
+import {CustomerErrorHandler} from "../classes/customerErrorHandler";
 
 export class TenantUsersService {
     tenantUsersCollection: Collection;
     emitter: EventEmitter;
+    errorHandler: CustomerErrorHandler;
 
     constructor(db: any) {
         this.tenantUsersCollection = db.collection('tenantUsers');
         this.emitter = emitter;
+        this.errorHandler = new CustomerErrorHandler();
+        this.userHasTenantAccess = this.userHasTenantAccess.bind(this);
     }
 
     getTenantUsers(tenantId: string) {
@@ -25,7 +30,7 @@ export class TenantUsersService {
         return this.tenantUsersCollection.find(query).toArray();
     }
 
-    userHasTenantAccess(req: CustomRequest) {
+    checkTenantAccess(req: CustomRequest) {
         const tenantId = req.headers['tenant-id'];
         // @ts-ignore
         const userId = JwtService.decode(req.headers.authorization.replace('Bearer ', ''), global.config.secret).sub;
@@ -36,6 +41,14 @@ export class TenantUsersService {
             }
             const errorData = {userId, tenantId};
             return Promise.reject(new DatabaseError('No tenant access', ['This user does not have access to this tenant'], errorData));
+        });
+    }
+
+    userHasTenantAccess(req: CustomRequest, res: Response, next: NextFunction) {
+        this.checkTenantAccess(req).then(() => {
+            next();
+        }).catch((error) => {
+            this.errorHandler.handleErrors(error, req, res, next);
         });
     }
 
