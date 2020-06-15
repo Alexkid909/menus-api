@@ -1,7 +1,7 @@
 import {HelperService} from "../app/services/helpers.service";
 const express = require('express');
 
-import { CustomErrorHandler } from "../app/classes/customerErrorHandler";
+import { CustomErrorHandler } from "../app/classes/custom-error-handler";
 import { AuthService } from "../app/services/auth.service";
 import { Config } from "../config/config";
 
@@ -15,6 +15,7 @@ const requestIp = require('request-ip');
 const app = express();
 
 const config = new Config(process.env.NODE_ENV);
+const customErrorHandler = new CustomErrorHandler();
 
 Sentry.init({
     dsn: global.config.sentryUrl,
@@ -54,7 +55,7 @@ MongoClient.connect(global.config.dbUrl, (err: any, database: any) => {
 
     // Error handling middleware.
 
-    app.use(CustomErrorHandler.handleErrors);
+    app.use(customErrorHandler.handleErrors);
 
     http.createServer(app).listen(global.config.httpPort,() => {
         console.log((`App is running at http://localhost:${global.config.httpPort} in ${global.config.name} mode`));

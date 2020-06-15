@@ -7,17 +7,17 @@ import { KeyValuePair } from "./cache.service";
 import emitter from "./events.service";
 import { EventEmitter } from "events";
 import {NextFunction, Response} from "express";
-import {CustomerErrorHandler} from "../classes/customerErrorHandler";
+import { CustomErrorHandler } from "../classes/custom-error-handler";
 
 export class TenantUsersService {
     tenantUsersCollection: Collection;
     emitter: EventEmitter;
-    errorHandler: CustomerErrorHandler;
+    errorHandler: CustomErrorHandler;
 
     constructor(db: any) {
         this.tenantUsersCollection = db.collection('tenantUsers');
         this.emitter = emitter;
-        this.errorHandler = new CustomerErrorHandler();
+        this.errorHandler = new CustomErrorHandler();
         this.userHasTenantAccess = this.userHasTenantAccess.bind(this);
     }
 
