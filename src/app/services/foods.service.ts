@@ -19,20 +19,16 @@ export class FoodsService {
     private tenantsService: TenantsService;
     private usersService: UsersService;
     private defaultQueryOptions: DefaultQueryOptions;
-    private tenantUsersService: TenantUsersService;
 
     constructor(db: any) {
         this.foodsCollection = db.collection('foods');
         this.tenantsService = new TenantsService(db);
         this.usersService = new UsersService(db);
-        this.tenantUsersService = new TenantUsersService(db);
         this.defaultQueryOptions = new DefaultQueryOptions();
     }
 
     getFoodsHandler(req: CustomRequest, res: Response, next: NextFunction) {
         Joi.validate(req, validation.getFoods, HelperService.validationHandler).then(() => {
-            return this.tenantUsersService.userHasTenantAccess(req);
-        }).then((success: any) => {
             const query = new DefaultQuery();
             query.setTenantId(req.headers['tenant-id']);
             return this.foodsCollection.find(query, this.defaultQueryOptions).toArray();
@@ -42,9 +38,7 @@ export class FoodsService {
     }
 
     getFoodHandler(req: CustomRequest, res: Response, next: NextFunction) {
-        Joi.validate(req, validation.getOrDeleteFood, HelperService.validationHandler).then(() => {
-            return this.tenantUsersService.userHasTenantAccess(req);
-        }).then((success: any) => {
+        Joi.validate(req, validation.getOrDeleteFood, HelperService.validationHandler).then((success: any) => {
             const query = new DefaultQuery(req.params.foodId, req.headers['tenant-id']);
             return this.foodsCollection.findOne(query, this.defaultQueryOptions);
         }).then((success: any) => {
@@ -54,11 +48,7 @@ export class FoodsService {
 
     createFoodHandler(req: CustomRequest, res: Response, next: NextFunction) {
         const tenantId = req.headers["tenant-id"];
-        Joi.validate(req, validation.createFood, HelperService.validationHandler).then(() => {
-            return this.tenantUsersService.userHasTenantAccess(req);
-        }).then(() => {
-            return this.tenantsService.getTenant(tenantId)
-        }).then((success: any) => {
+        Joi.validate(req, validation.createFood, HelperService.validationHandler).then((success: any) => {
             if (success) {
                 const food = new Food(req.body.name, req.body.measurement, tenantId, null, null, req.body.imgSrc);
                 return this.foodsCollection.insertOne(food);
@@ -74,8 +64,6 @@ export class FoodsService {
     deleteFoodHandler(req: CustomRequest, res: Response, next: NextFunction) {
         const tenantId = req.headers["tenant-id"];
         Joi.validate(req, validation.getOrDeleteFood, HelperService.validationHandler).then(() => {
-            return this.tenantUsersService.userHasTenantAccess(req);
-        }).then(() => {
             const query = new DefaultQuery(req.params.foodId, tenantId);
             return this.foodsCollection.findOneAndDelete(query, this.defaultQueryOptions);
         }).then((doc: any) => {
@@ -89,8 +77,6 @@ export class FoodsService {
     updateFoodHandler(req: CustomRequest, res: Response, next: NextFunction) {
         const tenantId = req.headers["tenant-id"];
         Joi.validate(req, validation.updateFood, HelperService.validationHandler).then(() => {
-            return this.tenantUsersService.userHasTenantAccess(req);
-        }).then(() => {
             const query = new DefaultQuery(req.params.foodId, tenantId);
             const options = Object.assign(this.defaultQueryOptions, { returnOriginal: false });
             const update = new Food(req.body.name, req.body.measurement, tenantId, null, null, req.body.imgSrc);
