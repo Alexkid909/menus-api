@@ -3,12 +3,15 @@ import {MealService} from "../services/meals.service";
 import { CustomRequest } from "../classes/request/customRequest";
 import {MealFoodsService} from "../services/meal-foods.service";
 import {CacheService, KeyValuePair} from "../services/cache.service";
+import {TenantUsersService} from "../services/tenant-users.service";
 
 module.exports = (app: Application, db: any) => {
     const mealsService = new MealService(db);
+    const tenantUsersService = new TenantUsersService(db)
     const mealFoodsService = new MealFoodsService(db);
     const cacheService = new CacheService();
 
+    app.use('/foods', tenantUsersService.userHasTenantAccess);
     app.use('/meals', cacheService.cacheTenantRoute);
 
     app.get('/meals', (req: CustomRequest, res: Response, next: NextFunction) => {
@@ -21,25 +24,22 @@ module.exports = (app: Application, db: any) => {
 
     app.post('/meals', (req: CustomRequest, res: Response, next: NextFunction) => {
         const cachePrefix = new KeyValuePair('tenant', req.headers['tenant-id']);
-        cacheService.bustRoute('/meals', [cachePrefix]);
+        cacheService.bustTenantRoute(req, '/meals');
         mealsService.createMealHandler(req, res, next);
     });
 
     app.put('/meals/:mealId', (req: CustomRequest, res: Response, next: NextFunction) => {
-        const cachePrefix = new KeyValuePair('tenant', req.headers['tenant-id']);
-        cacheService.bustRoutes(['/meals', req.url], [cachePrefix]);
+        cacheService.bustTenantRoutes(req, ['/meals', req.url]);
         mealsService.updateMealHandler(req, res, next);
     });
 
     app.delete('/meals/:mealId', (req: CustomRequest, res: Response, next: NextFunction) => {
-        const cachePrefix = new KeyValuePair('tenant', req.headers['tenant-id']);
-        cacheService.bustRoute('/meals', [cachePrefix]);
+        cacheService.bustTenantRoute(req, '/meals');
         mealsService.deleteMealHandler(req, res, next);
     });
 
     app.post('/meals/:mealId/foods', (req: CustomRequest, res: Response, next: NextFunction) => {
-        const cachePrefix = new KeyValuePair('tenant', req.headers['tenant-id']);
-        cacheService.bustRoute(`/meals/${req.params.mealId}/foods`, [cachePrefix]);
+        cacheService.bustTenantRoute(req, `/meals/${req.params.mealId}/foods`);
         mealFoodsService.addFoodsToMealHandler(req, res, next);
     });
 

@@ -17,6 +17,7 @@ export class CustomerErrorHandler {
     handleErrors: any;
     constructor() {
         this.handleErrors = (error: any, req: CustomRequest, res: Response, next: any) => {
+            console.log('error handler caught error', error);
             if (error.name === 'BulkWriteError') {
                 this.handleBulkWriteError(error, res);
             } else {

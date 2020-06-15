@@ -2,12 +2,15 @@ import { Application, NextFunction, Response } from "express";
 import { FoodsService } from "../services/foods.service";
 import { CustomRequest } from "../classes/request/customRequest";
 import {CacheService, KeyValuePair} from "../services/cache.service";
+import { TenantUsersService } from "../services/tenant-users.service";
 
 
 module.exports = (app: Application, db: any) => {
     const foodService = new FoodsService(db);
+    const tenantUsersService = new TenantUsersService(db)
     const cacheService = new CacheService();
 
+    app.use('/foods', tenantUsersService.userHasTenantAccess);
     app.use('/foods', cacheService.cacheTenantRoute);
 
     app.get('/foods/:foodId', (req: CustomRequest, res: Response, next: NextFunction) => {
@@ -19,20 +22,17 @@ module.exports = (app: Application, db: any) => {
     });
 
     app.post('/foods', (req: CustomRequest, res: Response, next: NextFunction) => {
-        const optionalArgs = new KeyValuePair('tenant', req.headers["tenant-id"])
-        cacheService.bustRoute(req.path, [optionalArgs]);
+        cacheService.bustTenantRoute(req, req.path);
         foodService.createFoodHandler(req, res, next);
     });
 
     app.put('/foods/:foodId', (req: CustomRequest, res: Response, next: NextFunction) => {
-        const optionalArgs = new KeyValuePair('tenant', req.headers["tenant-id"])
-        cacheService.bustRoutes(['/foods', req.path], [optionalArgs]);
+        cacheService.bustTenantRoutes(req, ['/foods', req.path]);
         foodService.updateFoodHandler(req, res, next);
     });
 
     app.delete('/foods/:foodId', (req: CustomRequest, res: Response, next: NextFunction) => {
-        const optionalArgs = new KeyValuePair('tenant', req.headers["tenant-id"])
-        cacheService.bustRoutes(['/foods', req.path], [optionalArgs]);
+        cacheService.bustTenantRoutes(req, ['/foods', req.path]);
         foodService.deleteFoodHandler(req, res, next);
     });
 };
