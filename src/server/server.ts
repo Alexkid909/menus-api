@@ -1,9 +1,10 @@
-import {HelperService} from "../app/services/helpers.service";
 const express = require('express');
 
+import { HelperService } from "../app/services/helpers.service";
 import { CustomErrorHandler } from "../app/classes/custom-error-handler";
 import { AuthService } from "../app/services/auth.service";
 import { Config } from "../config/config";
+import { requestHeaderValidator } from "../app/validation/request-header-validator";
 
 const bodyParser = require("body-parser");
 const MongoClient = require("mongodb").MongoClient;
@@ -29,6 +30,10 @@ app.use(requestIp.mw());
 //Cross Origin Middleware.
 
 app.use(cors());
+
+// Request header validation;
+
+app.use(requestHeaderValidator);
 
 //Auth token verification middleware'
 

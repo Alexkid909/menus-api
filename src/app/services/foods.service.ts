@@ -1,6 +1,6 @@
 import { Collection } from "mongodb";
 import { Food } from "../classes/artefacts/food";
-import { validation } from "../routes/validation/foods";
+import { validation } from "../validation/routes/foods";
 import { ApiSuccessBody } from "../classes/response/apiSuccessBody";
 import { NextFunction, Response } from "express";
 import { CustomRequest } from "../classes/request/customRequest";
@@ -10,7 +10,6 @@ import { DatabaseError } from "../classes/internalErrors/databaseError";
 import { DefaultQuery } from "../classes/defaultQuery";
 import { DefaultQueryOptions } from "../classes/db/defaultQueryOptions";
 import { UsersService } from "./users.service";
-import { TenantUsersService } from "./tenant-users.service";
 
 const Joi = require("joi");
 
@@ -28,11 +27,9 @@ export class FoodsService {
     }
 
     getFoodsHandler(req: CustomRequest, res: Response, next: NextFunction) {
-        Joi.validate(req, validation.getFoods, HelperService.validationHandler).then(() => {
-            const query = new DefaultQuery();
-            query.setTenantId(req.headers['tenant-id']);
-            return this.foodsCollection.find(query, this.defaultQueryOptions).toArray();
-        }).then((success: any) => {
+        const query = new DefaultQuery();
+        query.setTenantId(req.headers['tenant-id']);
+        this.foodsCollection.find(query, this.defaultQueryOptions).toArray().then((success: any) => {
             res.send(new ApiSuccessBody('success', [`Found ${success.length} foods`], success));
         }).catch(next);
     }

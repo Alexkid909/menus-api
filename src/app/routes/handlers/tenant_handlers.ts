@@ -3,7 +3,7 @@ import { Tenant } from "../../classes/tenant";
 import { ApiSuccessBody } from "../../classes/response/apiSuccessBody";
 import { NextFunction, Response } from "express";
 import { CustomRequest } from "../../classes/request/customRequest";
-import { validation } from "../validation/tenants";
+import { validation } from "../../validation/routes/tenants";
 import { HelperService } from "../../services/helpers.service";
 import { UsersService } from "../../services/users.service";
 import { DatabaseError } from "../../classes/internalErrors/databaseError";
@@ -30,9 +30,7 @@ export class TenantsHandlers {
     }
 
     getTenantsHandler(req: CustomRequest, res: Response, next: NextFunction) {
-        Joi.validate(req, validation.getTenants, HelperService.validationHandler).then(() => {
-            return this.tenantsCollection.find({userId: new ObjectID(req.headers['user-id'])}).toArray();
-        }).then((success: any) => {
+        this.tenantsCollection.find({userId: new ObjectID(req.headers['user-id'])}).toArray().then((success: any) => {
             res.send(success);
         }).catch(next);
     }

@@ -9,7 +9,6 @@ const reqWithPayloadHeaders = new ApiReqWithPayloadHeadersSchema(false);
 
 const schemas = {
     createUser: Joi.object().keys({
-        headers: Joi.object().keys(reqWithPayloadHeaders).unknown(true),
         body : {
             firstName:Joi.string().required().min(1),
             lastName: Joi.string().required().min(1),
@@ -20,24 +19,18 @@ const schemas = {
         }
     }).unknown(true),
     authenticateUser: Joi.object().keys({
-        headers: Joi.object().keys(reqWithPayloadHeaders).unknown(true),
         body : Joi.object().keys({
             email: Joi.string().min(1).email(),
             userName: Joi.string().min(1),
             password: Joi.string().required().min(8).regex(passwordRegex),
         }).or('email', 'userName')
     }).unknown(true),
-    getOrDeleteUser: Joi.object().keys({
-        headers: Joi.object().keys(reqHeaders).unknown(true),
-    }).unknown(true),
     getOrDeleteUserTenant: Joi.object().keys({
-        headers: Joi.object().keys(reqHeaders).unknown(true),
         params: {
             tenantId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required()
         }
     }).unknown(true),
     updateUser: Joi.object().keys({
-        headers: Joi.object().keys(reqWithPayloadHeaders).unknown(true),
         body: {
             firstName:Joi.string().min(1),
             lastName: Joi.string().min(1),
