@@ -27,7 +27,7 @@
     "@types/mongodb": "^3.0.19",
     "@types/node": "^11.10.4",
     "aws-sdk": "^2.490.0",
-    "bcrypt": "3.0.3",
+    "bcrypt": "5.0.0",
     "body-parser": "^1.18.3",
     "cors": "^2.8.4",
     "dotenv": "^8.0.0",
