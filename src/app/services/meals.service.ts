@@ -2,7 +2,7 @@ import { Collection } from "mongodb";
 import { NextFunction, Response } from "express";
 import { CustomRequest } from "../classes/request/customRequest";
 import { Meal } from "../classes/artefacts/meal";
-import { validation } from "../routes/validation/meals";
+import { validation } from "../validation/routes/meals";
 import { ApiSuccessBody } from "../classes/response/apiSuccessBody";
 import { HelperService } from "./helpers.service";
 import { TenantsService } from "./tenants.service";
@@ -24,11 +24,9 @@ export class MealService {
     }
 
     getMealsHandler(req: CustomRequest, res: Response, next: NextFunction) {
-        Joi.validate(req, validation.getMeals, HelperService.validationHandler).then(() => {
-            const query = new DefaultQuery();
-            query.setTenantId(req.headers['tenant-id']);
-            return this.mealsCollection.find(query, this.defaultQueryOptions).toArray();
-        }).then((success: any) => {
+        const query = new DefaultQuery();
+        query.setTenantId(req.headers['tenant-id']);
+        this.mealsCollection.find(query, this.defaultQueryOptions).toArray().then((success: any) => {
             res.send(new ApiSuccessBody('success', [`Found ${success.length} meals`], success));
         }).catch(next);
     }
@@ -75,7 +73,7 @@ export class MealService {
         const tenantId = req.headers['tenant-id'];
         Joi.validate(req, validation.updateMeal, HelperService.validationHandler).then(() => {
             const update = new Meal(req.body.name, tenantId, null, null, req.body.imgSrc);
-            const options = Object.assign(this.defaultQueryOptions, { returnOriginal: false });
+            // const options = Object.assign(this.defaultQueryOptions, { returnOriginal: false });
             const query = new DefaultQuery(req.params.mealId, tenantId);
             return this.mealsCollection.findOneAndUpdate(query, { $set: update }, {returnOriginal: false})
         }).then((success: any) => {

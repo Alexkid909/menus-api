@@ -1,5 +1,5 @@
 import { NextFunction, Response} from "express";
-import { validation } from "../validation/users";
+import { validation } from "../../validation/routes/users";
 import { User } from "../../classes/user";
 import { ApiSuccessBody } from "../../classes/response/apiSuccessBody";
 import { HelperService } from "../../services/helpers.service";
@@ -36,9 +36,7 @@ export class UsersHandlers {
     }
 
     getUserHandler(req: CustomRequest, res: Response, next: NextFunction) {
-        Joi.validate(req, validation.getOrDeleteUser, HelperService.validationHandler).then(() => {
-            return this.usersService.getUserById(new ObjectID(req.params.userId));
-        }).then((success: any) => {
+        this.usersService.getUserById(new ObjectID(req.params.userId)).then((success: any) => {
             res.send(new ApiSuccessBody('success', ['Found user'], success));
         }).catch(next);
     }
@@ -130,10 +128,8 @@ export class UsersHandlers {
     // }
 
     getUserTenantsHandler(req: CustomRequest, res: Response, next: NextFunction) {
-        Joi.validate(req, validation.getOrDeleteUser, HelperService.validationHandler).then(() => {
-            const userId = UsersService.getUserIdFromAuth(req.headers.authorization);
-            return this.userTenantService.getUserTenants(userId);
-        }).then((success: any) => {
+        const userId = UsersService.getUserIdFromAuth(req.headers.authorization);
+        this.userTenantService.getUserTenants(userId).then((success: any) => {
             const tenantIds = success.map((userTenant: TenantUserLink) => userTenant.tenantId);
             return this.tenantsService.getTenants(tenantIds);
         }).then((success: any) => {

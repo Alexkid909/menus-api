@@ -5,7 +5,7 @@ import {Collection} from "mongodb";
 import {MealFood} from "../classes/artefacts/mealFood";
 import { NextFunction, Response } from "express";
 import { CustomRequest } from "../classes/request/customRequest";
-import { validation } from "../routes/validation/meal-foods";
+import { validation } from "../validation/routes/meal-foods";
 import {ApiSuccessBody} from "../classes/response/apiSuccessBody";
 import {TenantUsersService} from "./tenant-users.service";
 import {HelperService} from "./helpers.service";
@@ -24,9 +24,7 @@ export class MealFoodsService {
     }
 
     getMealsFoodsHandler(req: CustomRequest, res: Response, next: NextFunction) {
-        Joi.validate(req, validation.getMealsFoods, HelperService.validationHandler).then((success: any) => {
-            return this.mealFoodsCollection.find({}).toArray();
-        }).then((success: any) => {
+        this.mealFoodsCollection.find({}).toArray().then((success: any) => {
             res.send(new ApiSuccessBody('success', ['Got all meal foods'], success));
         }).catch(next);
     }
