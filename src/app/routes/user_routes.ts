@@ -38,7 +38,7 @@ module.exports = (app: Application, db: any) => {
         usersHandlers.authenticateUserHandler(req, res, next);
     });
 
-    app.get('/user/tenants', cacheService.cacheUserRoute, (req: CustomRequest, res: CustomResponse, next: NextFunction) => {
+    app.get('/user/tenants', /*cacheService.cacheUserRoute,*/ (req: CustomRequest, res: CustomResponse, next: NextFunction) => {
         usersHandlers.getUserTenantsHandler(req, res, next);
     });
 };
