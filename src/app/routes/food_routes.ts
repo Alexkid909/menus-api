@@ -11,7 +11,7 @@ module.exports = (app: Application, db: any) => {
     const cacheService = new CacheService();
 
     app.use('/foods', tenantUsersService.userHasTenantAccess);
-    app.use('/foods', cacheService.cacheTenantRoute);
+    // app.use('/foods', cacheService.cacheTenantRoute);
 
     app.get('/foods/:foodId', (req: CustomRequest, res: Response, next: NextFunction) => {
         foodService.getFoodHandler(req, res, next);
@@ -22,17 +22,17 @@ module.exports = (app: Application, db: any) => {
     });
 
     app.post('/foods', (req: CustomRequest, res: Response, next: NextFunction) => {
-        cacheService.bustTenantRoute(req, req.path);
+        // cacheService.bustTenantRoute(req, req.path);
         foodService.createFoodHandler(req, res, next);
     });
 
     app.put('/foods/:foodId', (req: CustomRequest, res: Response, next: NextFunction) => {
-        cacheService.bustTenantRoutes(req, ['/foods', req.path]);
+        // cacheService.bustTenantRoutes(req, ['/foods', req.path]);
         foodService.updateFoodHandler(req, res, next);
     });
 
     app.delete('/foods/:foodId', (req: CustomRequest, res: Response, next: NextFunction) => {
-        cacheService.bustTenantRoutes(req, ['/foods', req.path]);
+        // cacheService.bustTenantRoutes(req, ['/foods', req.path]);
         foodService.deleteFoodHandler(req, res, next);
     });
 };
