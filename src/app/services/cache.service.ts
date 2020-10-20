@@ -26,7 +26,7 @@ export class CacheKey {
     route: string;
 
     constructor(route: string, optionalArgs?: Array<KeyValuePair>) {
-        if(optionalArgs) { this.optionalArgs = optionalArgs }
+        this.optionalArgs = optionalArgs || [];
         this.route =  route;
     }
 
