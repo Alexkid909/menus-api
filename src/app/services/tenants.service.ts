@@ -15,9 +15,9 @@ export class TenantsService {
         this.tenantUsersService = new TenantUsersService(db);
     }
 
-    getTenants(tenantIds: Array<ObjectID>) {
+    getTenants(tenantIds: Array<ObjectID>, sortOrder: { sortKey: string }) {
         const query = { _id: { $in: tenantIds } };
-        return this.tenantsCollection.find(query).toArray();
+        return this.tenantsCollection.find(query).sort(sortOrder).toArray();
     }
 
     getTenant(tenantId: string) {

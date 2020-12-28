@@ -29,7 +29,10 @@ export class FoodsService {
     getFoodsHandler(req: CustomRequest, res: Response, next: NextFunction) {
         const query = new DefaultQuery();
         query.setTenantId(req.headers['tenant-id']);
-        this.foodsCollection.find(query, this.defaultQueryOptions).toArray().then((success: any) => {
+        const { sortOrder, sortKey} = (req.query as any);
+        const order: any = {};
+        if (sortOrder && sortKey) { order[sortKey] = parseInt(sortOrder)}
+        this.foodsCollection.find(query, this.defaultQueryOptions).sort(order).toArray().then((success: any) => {
             res.send(new ApiSuccessBody('success', [`Found ${success.length} foods`], success));
         }).catch(next);
     }

@@ -131,7 +131,10 @@ export class UsersHandlers {
         const userId = UsersService.getUserIdFromAuth(req.headers.authorization);
         this.userTenantService.getUserTenants(userId).then((success: any) => {
             const tenantIds = success.map((userTenant: TenantUserLink) => userTenant.tenantId);
-            return this.tenantsService.getTenants(tenantIds);
+            const { sortOrder, sortKey } = (req.query as any);
+            const order: any = {};
+            if (sortOrder && sortKey) { order[sortKey] = parseInt(sortOrder)}
+            return this.tenantsService.getTenants(tenantIds, order);
         }).then((success: any) => {
             res.send(new ApiSuccessBody('success', ['Found user'], success));
         }).catch(next);

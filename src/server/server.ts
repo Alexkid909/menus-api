@@ -12,7 +12,6 @@ const cors = require('cors');
 const http = require('http');
 const Sentry = require('@sentry/node');
 const requestIp = require('request-ip');
-
 const app = express();
 
 const config = new Config(process.env.NODE_ENV);
