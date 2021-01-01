@@ -32,9 +32,8 @@ export class MealFoodsService {
     getMealFoodsHandler(req: CustomRequest, res: Response, next: NextFunction) {
         let mealFoodsLinks: Array<MealFoodLink>;
         Joi.validate(req, validation.getMealFoods, HelperService.validationHandler).then((success: any) => {
-            const mealFoodsQuery = {'mealId' : new ObjectID(req.params.mealId)};
-            const mealFoodsProjection = { 'mealId': false };
-            return this.mealFoodsCollection.find(mealFoodsQuery, {projection: mealFoodsProjection}).toArray();
+            const mealId = new ObjectID(req.params.mealId);
+            return this.getMealFoodLinks(mealId);
         }).then((success: Array<MealFoodLink>) => {
             mealFoodsLinks = success;
             const foodsQueryArray = mealFoodsLinks.map((mealFood: MealFoodLink) => new ObjectID(mealFood.foodId));
@@ -48,7 +47,6 @@ export class MealFoodsService {
             });
             res.send(new ApiSuccessBody('success', [`Got meal foods for meal ${req.params.mealId}`], responseData));
         }).catch(next);
-
     };
 
     deleteMealFoodHandler(req: CustomRequest, res: Response, next: NextFunction) {
@@ -82,5 +80,11 @@ export class MealFoodsService {
         }).then((success: any) => {
             res.status(201).send(new ApiSuccessBody('success', [`MealFood ${success.value._id} updated`], success.value));
         }).catch(next);
+    }
+
+    getMealFoodLinks(mealId: ObjectID) {
+        const mealFoodsQuery = {'mealId' : mealId };
+        const mealFoodsProjection = { 'mealId': false };
+        return this.mealFoodsCollection.find(mealFoodsQuery, {projection: mealFoodsProjection}).toArray();
     }
 }

@@ -9,6 +9,7 @@ import { TenantsService } from "./tenants.service";
 import { DatabaseError } from "../classes/internalErrors/databaseError";
 import { DefaultQuery } from "../classes/defaultQuery";
 import { DefaultQueryOptions } from "../classes/db/defaultQueryOptions";
+import {ObjectID} from "bson";
 
 const Joi = require('joi');
 
@@ -23,13 +24,29 @@ export class MealService {
         this.defaultQueryOptions = new DefaultQueryOptions();
     }
 
-    getMealsHandler(req: CustomRequest, res: Response, next: NextFunction) {
-        const query = new DefaultQuery();
-        query.setTenantId(req.headers['tenant-id']);
+    getMealsHandler (req: CustomRequest, res: Response, next: NextFunction) {
         const { sortOrder, sortKey} = (req.query as any);
-        const order: any = {};
-        if (sortOrder && sortKey) { order[sortKey] = parseInt(sortOrder)}
-        this.mealsCollection.find(query, this.defaultQueryOptions).sort(order).toArray().then((success: any) => {
+        const tenantId = new ObjectID(req.headers['tenant-id']);
+        const pipeline: any = [
+            { $match: { tenantId } },
+            {
+                $lookup: {
+                    from: "mealFoods",
+                    localField: "_id",
+                    foreignField: "mealId",
+                    as: "mealFoodLinks"
+                }
+            },
+            { $addFields: {'foodsQty': { $size: '$mealFoodLinks' } } },
+            { $project: { 'mealFoodLinks': 0 }},
+        ];
+
+        if (sortOrder && sortKey) {
+            const sortOrderInt = parseInt(sortOrder)
+            pipeline.push({ $sort: { [sortKey]: sortOrderInt } });
+        }
+
+        this.mealsCollection.aggregate(pipeline).toArray().then((success: any) => {
             res.send(new ApiSuccessBody('success', [`Found ${success.length} meals`], success));
         }).catch(next);
     }
