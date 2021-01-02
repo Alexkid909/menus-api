@@ -1,6 +1,6 @@
 import { Collection } from "mongodb";
 import { Food } from "../classes/artefacts/food";
-import { validation } from "../routes/validation/foods";
+import { validation } from "../validation/routes/foods";
 import { ApiSuccessBody } from "../classes/response/apiSuccessBody";
 import { NextFunction, Response } from "express";
 import { CustomRequest } from "../classes/request/customRequest";
@@ -10,7 +10,6 @@ import { DatabaseError } from "../classes/internalErrors/databaseError";
 import { DefaultQuery } from "../classes/defaultQuery";
 import { DefaultQueryOptions } from "../classes/db/defaultQueryOptions";
 import { UsersService } from "./users.service";
-import { TenantUsersService } from "./tenant-users.service";
 
 const Joi = require("joi");
 
@@ -19,32 +18,27 @@ export class FoodsService {
     private tenantsService: TenantsService;
     private usersService: UsersService;
     private defaultQueryOptions: DefaultQueryOptions;
-    private tenantUsersService: TenantUsersService;
 
     constructor(db: any) {
         this.foodsCollection = db.collection('foods');
         this.tenantsService = new TenantsService(db);
         this.usersService = new UsersService(db);
-        this.tenantUsersService = new TenantUsersService(db);
         this.defaultQueryOptions = new DefaultQueryOptions();
     }
 
     getFoodsHandler(req: CustomRequest, res: Response, next: NextFunction) {
-        Joi.validate(req, validation.getFoods, HelperService.validationHandler).then(() => {
-            return this.tenantUsersService.hasTenantAccess(req);
-        }).then((success: any) => {
-            const query = new DefaultQuery();
-            query.setTenantId(req.headers['tenant-id']);
-            return this.foodsCollection.find(query, this.defaultQueryOptions).toArray();
-        }).then((success: any) => {
+        const query = new DefaultQuery();
+        query.setTenantId(req.headers['tenant-id']);
+        const { sortOrder, sortKey} = (req.query as any);
+        const order: any = {};
+        if (sortOrder && sortKey) { order[sortKey] = parseInt(sortOrder)}
+        this.foodsCollection.find(query, this.defaultQueryOptions).sort(order).toArray().then((success: any) => {
             res.send(new ApiSuccessBody('success', [`Found ${success.length} foods`], success));
         }).catch(next);
     }
 
     getFoodHandler(req: CustomRequest, res: Response, next: NextFunction) {
-        Joi.validate(req, validation.getOrDeleteFood, HelperService.validationHandler).then(() => {
-            return this.tenantUsersService.hasTenantAccess(req);
-        }).then((success: any) => {
+        Joi.validate(req, validation.getOrDeleteFood, HelperService.validationHandler).then((success: any) => {
             const query = new DefaultQuery(req.params.foodId, req.headers['tenant-id']);
             return this.foodsCollection.findOne(query, this.defaultQueryOptions);
         }).then((success: any) => {
@@ -53,16 +47,13 @@ export class FoodsService {
     }
 
     createFoodHandler(req: CustomRequest, res: Response, next: NextFunction) {
-        Joi.validate(req , validation.createFood, HelperService.validationHandler).then(() => {
-            return this.tenantUsersService.hasTenantAccess(req);
-        }).then(() => {
-            return this.tenantsService.getTenant(req.headers['tenant-id'])
-        }).then((success: any) => {
+        const tenantId = req.headers["tenant-id"];
+        Joi.validate(req, validation.createFood, HelperService.validationHandler).then((success: any) => {
             if (success) {
-                const food = new Food(req.body.name, req.body.measurement, req.headers['tenant-id'], null, null, req.body.imgSrc);
+                const food = new Food(req.body.name, req.body.measurement, tenantId, null, null, req.body.imgSrc);
                 return this.foodsCollection.insertOne(food);
             } else {
-                const errorData = { name: 'InvalidTenantError',  tenantId: req.headers['tenant-id'] };
+                const errorData = { name: 'InvalidTenantError',  tenantId };
                 throw new DatabaseError('No such tenant', ['No such tenant exists with that tenant id'], errorData);
             }
         }).then((success: any) => {
@@ -71,10 +62,9 @@ export class FoodsService {
     }
 
     deleteFoodHandler(req: CustomRequest, res: Response, next: NextFunction) {
+        const tenantId = req.headers["tenant-id"];
         Joi.validate(req, validation.getOrDeleteFood, HelperService.validationHandler).then(() => {
-            return this.tenantUsersService.hasTenantAccess(req);
-        }).then(() => {
-            const query = new DefaultQuery(req.params.foodId, req.headers['tenant-id']);
+            const query = new DefaultQuery(req.params.foodId, tenantId);
             return this.foodsCollection.findOneAndDelete(query, this.defaultQueryOptions);
         }).then((doc: any) => {
             const body = new ApiSuccessBody('success', []);
@@ -85,13 +75,12 @@ export class FoodsService {
     };
 
     updateFoodHandler(req: CustomRequest, res: Response, next: NextFunction) {
+        const tenantId = req.headers["tenant-id"];
         Joi.validate(req, validation.updateFood, HelperService.validationHandler).then(() => {
-            return this.tenantUsersService.hasTenantAccess(req);
-        }).then(() => {
-            const query = new DefaultQuery(req.params.foodId, req.headers['tenant-id']);
+            const query = new DefaultQuery(req.params.foodId, tenantId);
             const options = Object.assign(this.defaultQueryOptions, { returnOriginal: false });
-            const update = new Food(req.body.name, req.body.measurement, req.headers['tenant-id'], null, null, req.body.imgSrc);
-            return this.foodsCollection.findOneAndUpdate(query, update, options)
+            const update = new Food(req.body.name, req.body.measurement, tenantId, null, null, req.body.imgSrc);
+            return this.foodsCollection.findOneAndUpdate(query, { $set: update }, options)
         }).then((success: any) => {
             res.send(new ApiSuccessBody('success', success.value));
         }).catch(next);

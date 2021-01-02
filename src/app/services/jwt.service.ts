@@ -2,23 +2,23 @@ const crypto = require('crypto');
 
 export class JwtService {
 
-    private base64encode(string: string) {
+    private static base64encode(string: string) {
         return Buffer.from(string).toString('base64');
     }
 
-    private base64decode(string: string) {
+    private static base64decode(string: string) {
         return Buffer.from(string, 'base64').toString();
     }
 
-    private sign(string: string, key: string) {
+    private static sign(string: string, key: string) {
         return crypto.createHmac('sha256', key).update(string).digest('base64');
     }
 
-    private verifySignature(raw: string, secret: string, signature: string) {
-        return signature === this.sign(raw, secret);
+    private static verifySignature(raw: string, secret: string, signature: string) {
+        return signature === JwtService.sign(raw, secret);
     }
 
-    encode(payload: any, secret: string) {
+    static encode(payload: any, secret: string) {
         const algorithm = 'HS256';
 
         const header = {
@@ -26,20 +26,20 @@ export class JwtService {
             alg: algorithm
         };
 
-        let jwt = `${this.base64encode(JSON.stringify(header))}.${this.base64encode(JSON.stringify(payload))}`;
+        let jwt = `${JwtService.base64encode(JSON.stringify(header))}.${JwtService.base64encode(JSON.stringify(payload))}`;
 
-        return `${jwt}.${this.sign(jwt, secret)}`;
+        return `${jwt}.${JwtService.sign(jwt, secret)}`;
     }
 
-    decode(token: string, secret: string) {
+    static decode(token: string, secret: string) {
         const tokenSegments = token.split('.');
         if(tokenSegments.length !== 3) { throw new Error("Token structure incorrect")}
 
-        const header = JSON.parse(this.base64decode(tokenSegments[0]));
-        const payload = JSON.parse(this.base64decode(tokenSegments[1]));
+        const header = JSON.parse(JwtService.base64decode(tokenSegments[0]));
+        const payload = JSON.parse(JwtService.base64decode(tokenSegments[1]));
         const rawSignature = `${tokenSegments[0]}.${tokenSegments[1]}`;
 
-        if(!this.verifySignature(rawSignature, global.config.secret, tokenSegments[2])) {
+        if(!JwtService.verifySignature(rawSignature, global.config.secret, tokenSegments[2])) {
             throw new Error("Verification failed");
         }
 

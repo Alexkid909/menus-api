@@ -1,6 +1,8 @@
 version: "2"
 services:
   web:
+    env_file:
+      - variables.dev.env
     build:
       context: .
     image: 'menus-api:dev'

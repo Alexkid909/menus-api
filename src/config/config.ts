@@ -1,11 +1,14 @@
-const configData = require('./config.json');
-
 export class Config {
-    private _env: string;
-    private _data: any;
-    constructor(env: string) {
-        this._env = env;
-        this._data = configData[this._env];
-        global.config = this._data;
+    [key: string]: string;
+    constructor() {
+
+        const snakeToCamel = (str: string) => str.replace(/([-_]\w)/g, g => g[1].toUpperCase())
+
+        const _regex = new RegExp('^MEALS_');
+        const configKeys: Array<string> = Object.keys(process.env).filter((key: string) => _regex.test(key));
+        configKeys.forEach((key:string) => {
+            const newKey = snakeToCamel(key.replace(_regex,'').toLowerCase());
+            this[newKey] = process.env[key];
+        });
     }
 }

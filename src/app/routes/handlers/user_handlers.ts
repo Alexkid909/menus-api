@@ -1,5 +1,5 @@
 import { NextFunction, Response} from "express";
-import { validation } from "../validation/users";
+import { validation } from "../../validation/routes/users";
 import { User } from "../../classes/user";
 import { ApiSuccessBody } from "../../classes/response/apiSuccessBody";
 import { HelperService } from "../../services/helpers.service";
@@ -10,6 +10,7 @@ import { CustomRequest } from "../../classes/request/customRequest";
 import {TenantUsersService} from "../../services/tenant-users.service";
 import {TenantsService} from "../../services/tenants.service";
 import {TenantUserLink} from "../../classes/joins/tenantUserLink";
+import {ObjectID} from "bson";
 
 const bcrypt = require('bcrypt');
 const Joi = require("joi");
@@ -17,14 +18,14 @@ const Joi = require("joi");
 export class UsersHandlers {
     usersService: UsersService;
     authService: AuthService;
-    tenantUsersService: TenantUsersService;
+    userTenantService: TenantUsersService;
     tenantsService: TenantsService;
 
 
     constructor(db: any) {
         this.usersService = new UsersService(db);
         this.authService = new AuthService(db);
-        this.tenantUsersService = new TenantUsersService(db);
+        this.userTenantService = new TenantUsersService(db);
         this.tenantsService = new TenantsService(db);
     }
 
@@ -35,9 +36,7 @@ export class UsersHandlers {
     }
 
     getUserHandler(req: CustomRequest, res: Response, next: NextFunction) {
-        Joi.validate(req, validation.getOrDeleteUser, HelperService.validationHandler).then(() => {
-            return this.usersService.getUserById(req.params.userId);
-        }).then((success: any) => {
+        this.usersService.getUserById(new ObjectID(req.params.userId)).then((success: any) => {
             res.send(new ApiSuccessBody('success', ['Found user'], success));
         }).catch(next);
     }
@@ -129,12 +128,13 @@ export class UsersHandlers {
     // }
 
     getUserTenantsHandler(req: CustomRequest, res: Response, next: NextFunction) {
-        Joi.validate(req, validation.getOrDeleteUser, HelperService.validationHandler).then(() => {
-            const userId = this.usersService.getUserIdFromAuth(req.headers.authorization);
-            return this.tenantUsersService.getUserTenants(userId);
-        }).then((success: any) => {
+        const userId = UsersService.getUserIdFromAuth(req.headers.authorization);
+        this.userTenantService.getUserTenants(userId).then((success: any) => {
             const tenantIds = success.map((userTenant: TenantUserLink) => userTenant.tenantId);
-            return this.tenantsService.getTenants(tenantIds);
+            const { sortOrder, sortKey } = (req.query as any);
+            const order: any = {};
+            if (sortOrder && sortKey) { order[sortKey] = parseInt(sortOrder)}
+            return this.tenantsService.getTenants(tenantIds, order);
         }).then((success: any) => {
             res.send(new ApiSuccessBody('success', ['Found user'], success));
         }).catch(next);

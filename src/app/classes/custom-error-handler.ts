@@ -13,10 +13,11 @@ class BulkWriteError {
 const mongoParse = require('mongo-error-parser');
 
 
-export class CustomerErrorHandler {
+export class CustomErrorHandler {
     handleErrors: any;
     constructor() {
         this.handleErrors = (error: any, req: CustomRequest, res: Response, next: any) => {
+            console.log('error handler caught error', error);
             if (error.name === 'BulkWriteError') {
                 this.handleBulkWriteError(error, res);
             } else {

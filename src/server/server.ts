@@ -1,22 +1,28 @@
-import {HelperService} from "../app/services/helpers.service";
 const express = require('express');
 
-import { CustomerErrorHandler } from "../app/classes/customerErrorHandler";
+import { HelperService } from "../app/services/helpers.service";
+import { CustomErrorHandler } from "../app/classes/custom-error-handler";
 import { AuthService } from "../app/services/auth.service";
 import { Config } from "../config/config";
+import { requestHeaderValidator } from "../app/validation/request-header-validator";
+
 const bodyParser = require("body-parser");
 const MongoClient = require("mongodb").MongoClient;
 const cors = require('cors');
 const http = require('http');
 const Sentry = require('@sentry/node');
 const requestIp = require('request-ip');
-
 const app = express();
 
-const customErrorHandler = new CustomerErrorHandler();
-const config = new Config(process.env.NODE_ENV);
+global.config = new Config();
+console.log(global.config);
 
-Sentry.init({ dsn: global.config.sentryUrl });
+const customErrorHandler = new CustomErrorHandler();
+
+Sentry.init({
+    dsn: global.config.sentryUrl,
+    autoBreadcrumbs: { console: false }
+});
 
 // IP address middleware.
 
@@ -25,6 +31,10 @@ app.use(requestIp.mw());
 //Cross Origin Middleware.
 
 app.use(cors());
+
+// Request header validation;
+
+app.use(requestHeaderValidator);
 
 //Auth token verification middleware'
 
@@ -54,7 +64,7 @@ MongoClient.connect(global.config.dbUrl, (err: any, database: any) => {
     app.use(customErrorHandler.handleErrors);
 
     http.createServer(app).listen(global.config.httpPort,() => {
-        console.log((`App is running at http://localhost:${global.config.httpPort} in ${global.config.name} mode`));
+        console.log((`App is running at http://localhost:${global.config.httpPort} in ${global.config.mode} mode`));
         console.log('port' + global.config.httpPort, 'env' + app.get('env'));
     });
 });

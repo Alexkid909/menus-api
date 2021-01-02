@@ -2,8 +2,24 @@ steps:
   - name: "gcr.io/cloud-builders/docker"
     args:
       - build
-      - "--tag=gcr.io/menus-api/menus-api"
+      - "--tag=gcr.io/menus-api/menus-api:$COMMIT_SHA"
       - "--file=./Dockerfile.prod"
       - .
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - push
+      - "gcr.io/menus-api/menus-api:$COMMIT_SHA"
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'menus-api'
+      - '--image'
+      - "gcr.io/menus-api/menus-api:$COMMIT_SHA"
+      - '--region'
+      - 'europe-west1'
+      - '--platform'
+      - 'managed'
 images:
-  - "gcr.io/menus-api/menus-api"
+  - "gcr.io/menus-api/menus-api:$COMMIT_SHA"

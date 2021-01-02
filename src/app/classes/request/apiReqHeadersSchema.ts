@@ -3,7 +3,6 @@ import {JoiObject} from "joi";
 
 export class ApiReqHeadersSchema {
 
-    accept: JoiObject;
     'accept-encoding': JoiObject;
     'accept-language': JoiObject;
     'user-agent': JoiObject;
@@ -14,7 +13,6 @@ export class ApiReqHeadersSchema {
     'host': JoiObject;
     'tenant-id'?: JoiObject;
     constructor(tenantSpecific: boolean = true) {
-        this['accept'] = Joi.string().required().insensitive().valid('application/json');
         this['accept-encoding'] = Joi.string().insensitive();
         this['accept-language'] = Joi.string().insensitive();
         this['user-agent'] = Joi.string().insensitive();
