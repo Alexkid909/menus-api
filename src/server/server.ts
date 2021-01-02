@@ -14,7 +14,9 @@ const Sentry = require('@sentry/node');
 const requestIp = require('request-ip');
 const app = express();
 
-const config = new Config(process.env.NODE_ENV);
+global.config = new Config();
+console.log(global.config);
+
 const customErrorHandler = new CustomErrorHandler();
 
 Sentry.init({
@@ -62,7 +64,7 @@ MongoClient.connect(global.config.dbUrl, (err: any, database: any) => {
     app.use(customErrorHandler.handleErrors);
 
     http.createServer(app).listen(global.config.httpPort,() => {
-        console.log((`App is running at http://localhost:${global.config.httpPort} in ${global.config.name} mode`));
+        console.log((`App is running at http://localhost:${global.config.httpPort} in ${global.config.mode} mode`));
         console.log('port' + global.config.httpPort, 'env' + app.get('env'));
     });
 });
