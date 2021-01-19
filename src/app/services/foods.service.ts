@@ -28,6 +28,7 @@ export class FoodsService {
 
     getFoodsHandler(req: CustomRequest, res: Response, next: NextFunction) {
         const query = new DefaultQuery();
+        query.setProperty('softDeleted', false);
         query.setTenantId(req.headers['tenant-id']);
         const { sortOrder, sortKey} = (req.query as any);
         const order: any = {};
@@ -65,22 +66,23 @@ export class FoodsService {
         const tenantId = req.headers["tenant-id"];
         Joi.validate(req, validation.getOrDeleteFood, HelperService.validationHandler).then(() => {
             const query = new DefaultQuery(req.params.foodId, tenantId);
-            return this.foodsCollection.findOneAndDelete(query, this.defaultQueryOptions);
+            const options = Object.assign({}, this.defaultQueryOptions, { returnOriginal: false });
+            const update = { softDeleted: true };
+            return this.foodsCollection.findOneAndUpdate(query, { $set: update }, options);
         }).then((doc: any) => {
             const body = new ApiSuccessBody('success', []);
             body.newMessage(`Food ${doc.value._id} deleted`);
             res.send(body);
         }).catch(next);
-
     };
 
     updateFoodHandler(req: CustomRequest, res: Response, next: NextFunction) {
         const tenantId = req.headers["tenant-id"];
         Joi.validate(req, validation.updateFood, HelperService.validationHandler).then(() => {
             const query = new DefaultQuery(req.params.foodId, tenantId);
-            const options = Object.assign(this.defaultQueryOptions, { returnOriginal: false });
+            const options = Object.assign({}, this.defaultQueryOptions, { returnOriginal: false });
             const update = new Food(req.body.name, req.body.measurement, tenantId, null, null, req.body.imgSrc);
-            return this.foodsCollection.findOneAndUpdate(query, { $set: update }, options)
+            return this.foodsCollection.findOneAndUpdate(query, { $set: update }, options);
         }).then((success: any) => {
             res.send(new ApiSuccessBody('success', success.value));
         }).catch(next);

@@ -28,7 +28,7 @@ export class MealService {
         const { sortOrder, sortKey} = (req.query as any);
         const tenantId = new ObjectID(req.headers['tenant-id']);
         const pipeline: any = [
-            { $match: { tenantId } },
+            { $match: { tenantId, softDeleted: false } },
             {
                 $lookup: {
                     from: "mealFoods",
@@ -81,7 +81,9 @@ export class MealService {
         const tenantId = req.headers['tenant-id'];
         Joi.validate(req, validation.getOrDeleteMeal, HelperService.validationHandler).then(() => {
             const query = new DefaultQuery(req.params.mealId, tenantId);
-            return this.mealsCollection.findOneAndDelete(query)
+            const options = Object.assign({}, this.defaultQueryOptions, { returnOriginal: false });
+            const update = { softDeleted: true };
+            return this.mealsCollection.findOneAndUpdate(query, { $set: update }, options);
         }).then((doc: any) => {
             const body = new ApiSuccessBody('success', []);
             body.newMessage(`Meal ${doc.value._id} deleted`);
@@ -93,7 +95,6 @@ export class MealService {
         const tenantId = req.headers['tenant-id'];
         Joi.validate(req, validation.updateMeal, HelperService.validationHandler).then(() => {
             const update = new Meal(req.body.name, tenantId, null, null, req.body.imgSrc);
-            // const options = Object.assign(this.defaultQueryOptions, { returnOriginal: false });
             const query = new DefaultQuery(req.params.mealId, tenantId);
             return this.mealsCollection.findOneAndUpdate(query, { $set: update }, {returnOriginal: false})
         }).then((success: any) => {

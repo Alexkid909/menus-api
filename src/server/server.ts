@@ -15,7 +15,6 @@ const requestIp = require('request-ip');
 const app = express();
 
 global.config = new Config();
-console.log(global.config);
 
 const customErrorHandler = new CustomErrorHandler();
 
