@@ -8,7 +8,7 @@ import { HelperService } from "./helpers.service";
 import { TenantsService } from "./tenants.service";
 import { DatabaseError } from "../classes/internalErrors/databaseError";
 import { DefaultQuery } from "../classes/defaultQuery";
-import { DefaultQueryOptions } from "../classes/db/defaultQueryOptions";
+import {DefaultProjection, DefaultQueryOptions} from "../classes/db/defaultQueryOptions";
 import {ObjectID} from "bson";
 
 const Joi = require('joi');
@@ -27,8 +27,10 @@ export class MealService {
     getMealsHandler (req: CustomRequest, res: Response, next: NextFunction) {
         const { sortOrder, sortKey} = (req.query as any);
         const tenantId = new ObjectID(req.headers['tenant-id']);
+        const projection = new DefaultProjection(false);
         const pipeline: any = [
             { $match: { tenantId, softDeleted: false } },
+            { $project: projection },
             {
                 $lookup: {
                     from: "mealFoods",
