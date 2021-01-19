@@ -8,7 +8,7 @@ import { HelperService } from "./helpers.service";
 import { TenantsService } from "./tenants.service";
 import { DatabaseError } from "../classes/internalErrors/databaseError";
 import { DefaultQuery } from "../classes/defaultQuery";
-import { DefaultQueryOptions } from "../classes/db/defaultQueryOptions";
+import {DefaultProjection, DefaultQueryOptions} from "../classes/db/defaultQueryOptions";
 import {ObjectID} from "bson";
 
 const Joi = require('joi');
@@ -27,8 +27,10 @@ export class MealService {
     getMealsHandler (req: CustomRequest, res: Response, next: NextFunction) {
         const { sortOrder, sortKey} = (req.query as any);
         const tenantId = new ObjectID(req.headers['tenant-id']);
+        const projection = new DefaultProjection(false);
         const pipeline: any = [
-            { $match: { tenantId } },
+            { $match: { tenantId, softDeleted: false } },
+            { $project: projection },
             {
                 $lookup: {
                     from: "mealFoods",
@@ -81,7 +83,9 @@ export class MealService {
         const tenantId = req.headers['tenant-id'];
         Joi.validate(req, validation.getOrDeleteMeal, HelperService.validationHandler).then(() => {
             const query = new DefaultQuery(req.params.mealId, tenantId);
-            return this.mealsCollection.findOneAndDelete(query)
+            const options = Object.assign({}, this.defaultQueryOptions, { returnOriginal: false });
+            const update = { softDeleted: true };
+            return this.mealsCollection.findOneAndUpdate(query, { $set: update }, options);
         }).then((doc: any) => {
             const body = new ApiSuccessBody('success', []);
             body.newMessage(`Meal ${doc.value._id} deleted`);
@@ -93,7 +97,6 @@ export class MealService {
         const tenantId = req.headers['tenant-id'];
         Joi.validate(req, validation.updateMeal, HelperService.validationHandler).then(() => {
             const update = new Meal(req.body.name, tenantId, null, null, req.body.imgSrc);
-            // const options = Object.assign(this.defaultQueryOptions, { returnOriginal: false });
             const query = new DefaultQuery(req.params.mealId, tenantId);
             return this.mealsCollection.findOneAndUpdate(query, { $set: update }, {returnOriginal: false})
         }).then((success: any) => {

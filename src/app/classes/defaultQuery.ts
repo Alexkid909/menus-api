@@ -22,7 +22,7 @@ export class DefaultQuery {
         return this._id.toHexString();
     }
 
-    setProperty(propName: string, value: string) {
+    setProperty(propName: string, value: any) {
         this[propName] = value;
     }
 }
