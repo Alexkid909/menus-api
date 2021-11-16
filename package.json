@@ -27,7 +27,7 @@
     "@types/joi": "^14.0.1",
     "@types/mongodb": "^3.0.19",
     "@types/node": "^11.15.0",
-    "aws-sdk": "^2.490.0",
+    "aws-sdk": "^2.814.0",
     "bcrypt": "^5.0.0",
     "body-parser": "^1.18.3",
     "cors": "^2.8.4",
