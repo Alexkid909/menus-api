@@ -40,7 +40,7 @@
     "joi-password-complexity": "^2.0.1",
     "memcached": "^2.2.2",
     "memory-cache": "^0.2.0",
-    "moment": "^2.24.0",
+    "moment": "^2.29.2",
     "mongo-error-parser": "^0.1.1",
     "mongodb": "^3.6.3",
     "nodemon": "^1.17.5",
